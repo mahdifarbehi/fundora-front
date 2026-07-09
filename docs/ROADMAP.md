@@ -175,17 +175,27 @@ This introduces the TanStack Query + Toman-formatting patterns every later list 
 **Implements:** ADR 0005 (hand-written Query hooks over generated types), FRONTEND_API §5.
 
 **Build:**
-- [ ] Add TanStack Query; wrap the app in its provider.
-- [ ] A **pagination helper** that reads the `{ count, next, previous, results }` envelope
-      (FRONTEND_API §2.4) — every list endpoint uses it, so build it once here.
-- [ ] `src/lib/money.ts`: a Toman formatter (integer → grouped, Persian numerals). Amounts
-      are sent/received as raw integers; formatting is display-only (CONTEXT — Toman).
-- [ ] `useFunds()` query hook → `GET /api/funds/`; render `results` in an Ant Design `Table`
-      showing name + `monthly_share_amount` (formatted).
-- [ ] "Create fund" modal: Ant Design `Form` + Zod for `name`, `monthly_share_amount`,
-      `default_loan_amount`, `default_installment_count`, `contribution_day` (1–28).
-      `useCreateFund()` mutation → `POST /api/funds/`; on success invalidate the funds query
-      so the list refetches.
+- [x] TanStack Query (`src/lib/queryClient.ts`); app wrapped in `QueryClientProvider`
+      (`main.tsx`), retry 1, no refetch-on-focus.
+- [x] Pagination helper (`src/lib/pagination.ts`): generic `Paginated<T>` + `PageParams`
+      for the `{count,next,previous,results}` envelope — reused by every later list.
+- [x] `src/lib/money.ts`: `formatToman` / `formatNumber` via `Intl.NumberFormat('fa-IR')`
+      (grouping + Persian numerals). Display-only; wire carries raw integers.
+- [x] `useFunds()` (`src/funds/hooks.ts`) → `GET /api/funds/`; `FundsPage` renders `results`
+      in an Ant `Table` (name, monthly share as Toman, contribution day) with loading + empty
+      states.
+- [x] `CreateFundModal`: Ant `Form` + Zod (coerced integers; `contribution_day` 1–28);
+      numeric fields use `normalize={normalizeDigits}` (ADR 0007). `useCreateFund()` →
+      `POST /api/funds/`; invalidates `['funds']` on success; API field errors
+      (e.g. `contribution_day: ["max_value"]`) render inline.
+- [x] `/` now routes to `FundsPage` (placeholder `HomePage` removed).
+- [x] Currency inputs use `MoneyInput` (`src/components/MoneyInput.tsx`): live thousands
+      grouping + Persian numerals while typing, emits a raw ASCII integer to the form/API.
+      Standard for all money fields going forward.
+- [x] `contribution_day` is a Gregorian day 1–28 shown as a `Select` (Persian labels), with:
+      an explicit note that it's Gregorian, a recommended day (defaults in) that lands near
+      the Jalali month start, and a live readout of the Jalali days the pick falls on +
+      a wrap warning. Uses `src/lib/jalali.ts` (browser Persian calendar; display-only, ADR 0004).
 
 **How to verify:**
 - Funds list loads and shows funds you own (cross-check against Swagger UI / the DB).
@@ -195,9 +205,12 @@ This introduces the TanStack Query + Toman-formatting patterns every later list 
 - Submit `contribution_day = 40` → blocked by Zod / shows `contribution_day: ["max_value"]`.
 
 **Done when:**
-- [ ] Funds you own are listed via the pagination envelope.
-- [ ] Creating a fund updates the list automatically.
-- [ ] Toman formatting is display-only; payloads carry integers.
+- [x] Code complete; `tsc -b` clean, all modules transform, backend contract verified
+      (empty envelope → create `201` → list shows it → `contribution_day=40` → `400`
+      `VALIDATION_ERROR{contribution_day:[max_value]}`).
+- [ ] **(your click-test)** Funds you own are listed via the pagination envelope.
+- [ ] **(your click-test)** Creating a fund updates the list automatically.
+- [ ] **(your click-test)** Toman shows grouped Persian numerals; payload carries integers.
 
 ---
 

@@ -10,12 +10,20 @@
 
 const PERSIAN_ZERO = 0x06f0;
 const ARABIC_ZERO = 0x0660;
+const ASCII_ZERO = 0x30;
 
 /** Convert any Persian/Arabic-Indic digits in a string to ASCII 0–9. Other chars untouched. */
 export function toEnglishDigits(value: string): string {
   return value
     .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - PERSIAN_ZERO))
     .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - ARABIC_ZERO));
+}
+
+/** Convert ASCII digits in a string/number to Persian numerals — display-only. */
+export function toPersianDigits(value: string | number): string {
+  return String(value).replace(/[0-9]/g, (d) =>
+    String.fromCharCode(PERSIAN_ZERO + (d.charCodeAt(0) - ASCII_ZERO)),
+  );
 }
 
 /**

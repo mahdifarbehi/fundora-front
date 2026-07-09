@@ -22,9 +22,35 @@ export const strings = {
     toLogin: "حساب دارید؟ وارد شوید",
   },
 
-  home: {
-    title: "داشبورد",
-    placeholder: "به‌زودی: فهرست صندوق‌ها",
+  funds: {
+    title: "صندوق‌ها",
+    create: "ایجاد صندوق",
+    createTitle: "ایجاد صندوق جدید",
+    empty: "هنوز صندوقی نساخته‌اید.",
+    colName: "نام صندوق",
+    colMonthlyShare: "سهم ماهانه",
+    colDefaultLoan: "وام پیش‌فرض",
+    colInstallmentCount: "اقساط پیش‌فرض",
+    colContributionDay: "روز واریز (میلادی)",
+    tableJalaliLands: (listFa: string) => `شمسی: ${listFa}`,
+    dayHintTooltip:
+      "این روز بر اساس تقویم میلادی است و در طول سال روی این روزهای ماه شمسی می‌افتد.",
+    nameLabel: "نام صندوق",
+    monthlyShareLabel: "مبلغ سهم ماهانه (تومان)",
+    defaultLoanLabel: "مبلغ وام پیش‌فرض (تومان)",
+    installmentCountLabel: "تعداد اقساط پیش‌فرض",
+    contributionDayLabel: "روز واریز ماهانه (میلادی، ۱ تا ۲۸)",
+    contributionDayGregorianNote:
+      "این روز بر اساس تقویم میلادی است، چون محاسبات سیستم میلادی انجام می‌شود.",
+    contributionDayRecommend: (dayFa: string) =>
+      `پیشنهاد ما: روز ${dayFa} — تا واریز تقریباً ابتدای ماه شمسی بیفتد.`,
+    contributionDayPossibilities: (dayFa: string, listFa: string) =>
+      `روز ${dayFa} میلادی در طول سال روی این روزهای ماه شمسی می‌افتد: ${listFa}`,
+    contributionDayWrapWarning:
+      "توجه: این روز نزدیک مرز ماه شمسی است و در برخی ماه‌ها به روزهای پایانی ماه شمسی (۲۹/۳۰/۳۱) می‌افتد.",
+    submit: "ایجاد",
+    cancel: "انصراف",
+    createSuccess: "صندوق با موفقیت ایجاد شد.",
   },
 
   // Field-level validation messages (used by Zod schemas).
@@ -33,6 +59,12 @@ export const strings = {
     phoneInvalid: "شماره موبایل معتبر نیست (مثال: ۰۹۱۲۰۰۰۰۰۰۰).",
     passwordRequired: "گذرواژه الزامی است.",
     passwordTooShort: "گذرواژه باید حداقل ۸ نویسه باشد.",
+    nameRequired: "نام صندوق الزامی است.",
+    amountRequired: "مبلغ را وارد کنید.",
+    amountMin: "مبلغ باید حداقل ۱ باشد.",
+    integerRequired: "یک عدد صحیح وارد کنید.",
+    countMin: "مقدار باید حداقل ۱ باشد.",
+    contributionDayRange: "روز واریز باید بین ۱ تا ۲۸ باشد.",
   },
 
   // Per-field API error codes → Persian (FRONTEND_API §2.2 / §4.1). Shown under the field.
@@ -42,6 +74,9 @@ export const strings = {
     null: "این فیلد الزامی است.",
     invalid: "مقدار نامعتبر است.",
     max_length: "طول مقدار بیش از حد مجاز است.",
+    min_value: "مقدار کمتر از حد مجاز است.",
+    max_value: "مقدار بیشتر از حد مجاز است.",
+    does_not_exist: "مورد انتخاب‌شده وجود ندارد.",
     already_registered: "این شماره قبلاً ثبت شده است. وارد شوید.",
     password_too_short: "گذرواژه بیش از حد کوتاه است.",
     password_too_common: "گذرواژه بیش از حد ساده و رایج است.",
