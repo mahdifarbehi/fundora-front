@@ -1,7 +1,12 @@
 # Fundora Frontend — Project Guide
 
-Persian, RTL admin panel (single operator) for the Fundora family-loan-fund backend. This
-is a **greenfield frontend**; the backend is a separate, already-built Django/DRF API.
+Persian, RTL, **end-user-facing** web app for the Fundora family-loan-fund backend:
+**anyone can self-register**, create funds, and manage the funds they own. It's multi-tenant
+— each user is the owner/administrator of their own funds and sees only those (tenancy is
+enforced backend-side). We call it an "admin panel" because a user administers their own
+funds and there is **no separate member-facing site yet**, but it is a public, client-side
+product, not a single-operator internal tool. This is a **greenfield frontend**; the backend
+is a separate, already-built Django/DRF API.
 
 ## Read these first
 - `PRD.md` — product requirements (the backend's domain).
@@ -19,6 +24,10 @@ is a **greenfield frontend**; the backend is a separate, already-built Django/DR
 - **Next up: build the *walking skeleton*** — one thin end-to-end flow: log in → funds
   list → open/create a fund → add a member → record a bank transfer → wallet balance
   updates. Build this before any breadth.
+- **The phased build plan is in `docs/ROADMAP.md`** — numbered, testable phases (0–6 are
+  the walking skeleton, 7+ fan out). Follow it top-to-bottom and tick the checkboxes.
+  Phases 0–1 done (scaffold/RTL, auth+network layer). **Phase 2 (routing + auth guard +
+  app shell) code-complete, pending browser click-test; Phase 3 (funds list) is next.**
 
 ## Locked decisions (details in docs/adr/)
 - **Stack:** React + Vite SPA + TypeScript. (0001)
@@ -28,6 +37,9 @@ is a **greenfield frontend**; the backend is a separate, already-built Django/DR
 - **Locale:** Persian-only, RTL, no i18n runtime; strings centralized. (0003)
 - **Dates:** Jalali only at the UI edge; all state/API is Gregorian/UTC. `dayjs` + a
   Persian-calendar plugin, wired into Ant Design's date components. (0004)
+- **Digits:** English/numeric fields (phone, Toman amounts, card numbers, tracking codes)
+  normalize Persian/Arabic digits → ASCII at the input edge via `normalizeDigits`
+  (`src/lib/digits.ts`); never on passwords/names. (0007)
 - **API types:** generated from `/api/schema/` via `openapi-typescript`; the axios
   client, auth flow, error handling, and TanStack Query hooks are hand-written. (0005)
 - **Fund scoping:** the active fund lives in the URL (`/funds/:fundId/...`). (0006)

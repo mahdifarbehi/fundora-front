@@ -1,9 +1,10 @@
 # Fundora Frontend
 
-The web UI for Fundora: a Persian, RTL admin panel through which one operator runs the
-family loan funds they own. It talks to an API-first Django/DRF backend that is
-deliberately calendar- and locale-agnostic, so this frontend owns all Jalali conversion,
-RTL layout, and Toman formatting.
+The web UI for Fundora: a Persian, RTL, end-user-facing web app where anyone can
+self-register and run the family loan funds they own. It is multi-tenant — each user is
+the owner/administrator of their own funds and sees only those. It talks to an API-first
+Django/DRF backend that is deliberately calendar- and locale-agnostic, so this frontend
+owns all Jalali conversion, RTL layout, and Toman formatting.
 
 ## Language
 
@@ -15,7 +16,7 @@ UI formats them for display (grouping, Persian numerals) but sends/receives raw 
 _Avoid_: Rial, currency, price.
 
 **Jalali**:
-The Persian solar calendar shown to and entered by the operator. Exists **only** in the
+The Persian solar calendar shown to and entered by the user. Exists **only** in the
 frontend — every Jalali value is converted to/from Gregorian at the API boundary.
 _Avoid_: Shamsi, Persian date, Khorshidi (use "Jalali" in code and prose).
 
@@ -26,8 +27,8 @@ timestamps are ISO-8601 UTC. The frontend never persists Jalali — it converts 
 ### Core domain
 
 **Fund**:
-A single family loan fund, owned by the user who created it. The tenancy boundary: the
-operator only ever sees funds they own. Carries settings (monthly share amount, loan
+A single family loan fund, owned by the user who created it. The tenancy boundary: a
+user only ever sees funds they own. Carries settings (monthly share amount, loan
 defaults, contribution day).
 _Avoid_: Account, group, pool.
 
@@ -43,7 +44,7 @@ generation and installment due dates. The lever that keeps the backend calendar-
 
 **Due**:
 One payment obligation — either a monthly `CONTRIBUTION` or a loan `INSTALLMENT`. Created
-by the system, never by hand. The only operator action on a Due is reversing its payment.
+by the system, never by hand. The only user action on a Due is reversing its payment.
 _Avoid_: Payment, bill, charge (a Due is the obligation, not the money that settles it).
 
 **Wallet**:

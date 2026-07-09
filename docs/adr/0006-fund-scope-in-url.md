@@ -8,7 +8,7 @@ state.
 This mirrors the backend's own nested routes (`/api/funds/{fund_pk}/...`), so the frontend
 structure reads like the API. Keeping the fund in the URL means there is no hidden
 context to fall out of sync, links are bookmarkable and shareable, the browser Back
-button behaves correctly, and the operator can't silently act on the wrong fund because
+button behaves correctly, and the user can't silently act on the wrong fund because
 the fund is always visible in the address.
 
 ## Consequences

@@ -1,6 +1,6 @@
 # Jalali lives only at the UI boundary
 
-Jalali dates exist **only** at the presentation edge — in what the operator reads on
+Jalali dates exist **only** at the presentation edge — in what the user reads on
 screen and types into a date picker. Every date is converted to Gregorian the instant it
 leaves an input, and converted back to Jalali only when rendered. Application state, our
 data-fetching cache, and all API requests/responses are Gregorian (`YYYY-MM-DD`) and UTC,

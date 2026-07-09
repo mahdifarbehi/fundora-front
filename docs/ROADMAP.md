@@ -1,0 +1,440 @@
+# Fundora Frontend — Build Roadmap
+
+An ordered, testable build plan. Work **one phase at a time, top to bottom**. Do not start
+a phase until the previous one's "Done when" boxes are all ticked — each phase assumes the
+previous one works.
+
+Think of this like the backend's `migrations/`: numbered, sequential, each one small enough
+to apply and verify on its own before the next.
+
+## How to use this document
+
+- **Follow phases in order.** Phases 0–6 are the **walking skeleton** (the thin end-to-end
+  slice from `CLAUDE.md`: log in → funds → open/create a fund → add a member → record a
+  bank transfer → wallet updates). Build all of them before the fan-out phases (7+).
+- **Tick the boxes** as you go (`- [ ]` → `- [x]`). The "Done when" list is the acceptance
+  test for the phase — if every box is true, the phase is genuinely finished.
+- **"How to verify"** is a concrete manual test you run yourself, mostly in the browser +
+  its Network tab (your equivalent of hitting an endpoint with `curl`/Postman and reading
+  the response). Where an automated test earns its keep, it's called out.
+- **The backend must be running locally** from Phase 1 onward. Every data phase is tested
+  against the real API through the Vite dev proxy — there are no mocks in this plan.
+- Each phase names the **ADR(s)** it implements so you can check the *why* while you build.
+
+### Prerequisite: a running backend
+
+Before Phase 1, have the `fundora` Django backend running locally (default assumed:
+`http://localhost:8000`) with at least one account you can log in as. Confirm you can reach
+`http://localhost:8000/api/docs/` (Swagger UI) in a browser. If your backend runs on a
+different port, note it — you'll point the Vite proxy at it in Phase 0.
+
+---
+
+## Phase 0 — Project scaffold + RTL shell
+
+**Goal:** an empty but correctly-configured app that boots, renders right-to-left in
+Persian, and proxies `/api` to the backend. No data yet.
+
+**Implements:** ADR 0001 (React+Vite+TS SPA), 0003 (Persian/RTL), and the dev-proxy decision.
+
+**Build:**
+- [x] Vite React + TypeScript scaffold (built manually to avoid clobbering existing
+      `docs/`, `CLAUDE.md`, etc.). `npm run dev` serves a page.
+- [x] Add Ant Design; wrap the app in `ConfigProvider` with `direction="rtl"` and the
+      Persian (`fa_IR`) locale. (`src/main.tsx`)
+- [x] Set `<html dir="rtl" lang="fa">` in `index.html`.
+- [x] Configure the Vite dev-server proxy: forward `/api` → backend origin
+      (`http://localhost:8000`, overridable via `FUNDORA_API`) in `vite.config.ts`. This is
+      what makes the browser see one origin (required for the auth cookie — ADR 0002).
+- [x] Create the domain-grouped folder skeleton under `src/`: `auth/`, `funds/`, `members/`,
+      `wallet/`, `loans/`, `bank/`, plus shared `lib/` and `app/`.
+- [x] Add `src/lib/strings.ts` as the single home for user-facing Persian strings
+      (ADR 0003 — centralized, no i18n runtime).
+
+**How to verify:**
+- Run `npm run dev`, open the page: text renders and lays out **right-to-left**, an Ant
+  Design component (e.g. a `Button`) shows in Persian styling.
+- In the browser Network tab, a request to `/api/docs/` (type it in the address bar as
+  `http://localhost:5173/api/docs/`) returns the backend's Swagger UI — proving the proxy
+  forwards to Django on one origin. *(Requires the backend running; with it down the proxy
+  returns 502 `ECONNREFUSED`, which still confirms the proxy rule is active.)*
+
+**Done when:**
+- [x] `npm run dev` boots with no console errors. *(verified: Vite 8 boots clean)*
+- [x] Page is visibly RTL and in Persian. *(`<html lang="fa" dir="rtl">` served; RTL
+      `ConfigProvider` + `fa_IR` locale wired)*
+- [x] A request to `/api/...` through the dev server reaches the backend (not a 404 from
+      Vite). *(verified: `/api/schema/` → 502 to backend, i.e. proxy forwards; will be 200
+      once the backend is up)*
+- [x] `npx tsc -b` typechecks clean.
+
+---
+
+## Phase 1 — API types + axios client + auth flow
+
+**Goal:** the network layer. Generated types, one axios instance, in-memory access token,
+silent refresh-on-401 with a request queue, and login/logout/refresh working against the
+real backend. **This is the hardest phase — take it slowly.**
+
+**Implements:** ADR 0002 (in-memory access token, httpOnly refresh cookie, silent refresh
++ queue), 0005 (generated types, hand-written client).
+
+**Build:**
+- [x] Add `openapi-typescript`; `npm run gen:api` reads `/api/schema/` → `src/lib/api-types.ts`
+      (committed). Re-run after backend schema changes — the frontend analogue of migrations.
+      *(Note: pinned TypeScript to 5.x — openapi-typescript & the frontend tool ecosystem
+      don't yet support the TS 7 compiler npm auto-installed.)*
+- [x] `src/lib/client.ts`: axios instance, `baseURL "/api"`, `withCredentials: true`.
+- [x] In-memory access-token holder (`src/lib/authToken.ts`, a module variable — not
+      localStorage, ADR 0002); request interceptor attaches `Authorization: Bearer`.
+- [x] Response interceptor: on `401`, refresh (empty body, credentials) + retry, with a
+      **single-flight queue** so concurrent 401s trigger one refresh; on refresh failure,
+      clear token + `notifySessionExpired()`. `/auth/token|refresh|logout|register` are
+      excluded from refresh-retry.
+- [x] Typed auth functions (`src/auth/api.ts`): `login`, `logout`, `getMe`,
+      `bootstrapSession` (app-load refresh).
+- [x] Central error helper (`src/lib/errors.ts`): `ApiError` + `normalizeError` reading the
+      `code` field (FRONTEND_API §2).
+
+**How to verify** — *temporary harness is live in `src/app/App.tsx`; run `npm run dev`:*
+- Log in with **your** credentials → Network tab shows `200` + `access` + `Set-Cookie:
+  refresh_token`; the log line confirms the token is in memory.
+- Click **Get Me** → returns your user (Bearer header present).
+- Click **Force silent refresh** (corrupts the token, fires 3 concurrent calls) → the
+  Network tab shows exactly **one** `token/refresh/`, and 3/3 calls succeed.
+- Click **Logout** → `205`; a following refresh/Get-Me fails as logged-out.
+
+**Done when:**
+- [x] `src/lib/api-types.ts` is generated and imported (compiles; `tsc -b` clean).
+- [x] Backend auth contract verified end-to-end via cookie-jar (register→login→me→refresh→
+      logout→refresh-blocked all return the documented codes/statuses).
+- [x] Error codes confirmed: `NO_ACTIVE_ACCOUNT`, `NOT_AUTHENTICATED`, `TOKEN_NOT_VALID`.
+- [x] **(your click-test)** Browser login stores the token & authed calls succeed.
+- [x] **(your click-test)** Force-refresh shows ONE `token/refresh/` for 3 concurrent 401s.
+- [x] **(your click-test)** Logout blocks further refresh.
+
+> Throwaway test user created in the dev DB during verification: **id 8, phone
+> `09129999999`** (the API has no user-delete; remove via Django admin/shell if you want).
+
+---
+
+## Phase 2 — Routing, auth guard, app shell
+
+**Goal:** public **register + login** screens and a protected layout. Anyone can
+self-register (the app is multi-tenant, end-user-facing — see ADR 0001); unauthenticated
+users are bounced to login; authenticated users see the app frame (header with account +
+logout). No fund data yet.
+
+**Implements:** ADR 0002 (app-load refresh), 0006 (routes for non-fund vs fund-scoped
+screens), React Router + React Context decisions.
+
+**Build:**
+- [x] React Router (v7): `/login` public; protected tree under `RequireAuth` → `AppShell`.
+      (`src/app/App.tsx`, `main.tsx` wraps `BrowserRouter` + `AuthProvider`.)
+- [x] Auth `Context` (`src/auth/AuthContext.tsx`) holding `{status, user}` + `signIn`/`signOut`
+      — session state in Context, not TanStack Query (locked decision).
+- [x] App-load silent refresh: `bootstrapSession()` on mount → `getMe()`; `loading` state
+      shows a spinner so a valid session never flashes `/login`. Also wires
+      `setOnSessionExpired` → flip to anon.
+- [x] Login page (`src/auth/LoginPage.tsx`): Ant `Form` + **Zod** submit validation
+      (`src/lib/zodForm.ts` bridge), phone regex `^09\d{9}$`, maps API `code` →
+      Persian via `errorMessage()`.
+- [x] Public **register page** (`src/auth/RegisterPage.tsx`): self-registration (§4.1),
+      Zod (min-8 password), auto-signs-in on success; per-field API errors
+      (`already_registered`, `password_too_*`) map inline via `applyApiFieldErrors()`.
+      Cross-links with login.
+- [x] App shell (`src/app/AppShell.tsx`): Ant `Layout` header with app name, user, logout;
+      `<Outlet/>` content. Placeholder `HomePage` (→ funds list in Phase 3).
+- [x] Route guard (`src/app/RequireAuth.tsx`): loading→spinner, anon→`/login` (remembers
+      intended path via `location.state.from`), authed→`<Outlet/>`.
+
+**How to verify** (run against your `npm run dev`):
+- From `/login`, click "ثبت‌نام" → `/register`; sign up with a fresh phone + 8+ char
+  password → you're auto-logged-in and land in the shell. Re-registering the same phone →
+  inline "این شماره قبلاً ثبت شده است" under the phone field.
+- Visit a protected URL logged out → redirected to `/login`.
+- Log in with valid credentials → land in the app shell showing your name.
+- Reload the page → you stay logged in (app-load refresh worked), no flash back to login.
+- Click logout → returned to `/login`; the back button doesn't sneak you back in.
+- Type a bad phone (e.g. `123`) or empty password → Zod shows an inline Persian error
+  before any request; wrong credentials → `NO_ACTIVE_ACCOUNT` shown in Persian.
+
+**Done when:**
+- [x] Code complete; `tsc -b` clean and all modules transform without errors.
+- [ ] **(your click-test)** Logged-out users cannot reach protected routes.
+- [ ] **(your click-test)** Login → shell → reload-stays-logged-in → logout all work.
+- [ ] **(your click-test)** Zod validation errors and server `code` errors both show in Persian.
+
+---
+
+## Phase 3 — Funds list + create fund
+
+**Goal:** first real server-state screen. List the funds you own and create a new one.
+This introduces the TanStack Query + Toman-formatting patterns every later list reuses.
+
+**Implements:** ADR 0005 (hand-written Query hooks over generated types), FRONTEND_API §5.
+
+**Build:**
+- [ ] Add TanStack Query; wrap the app in its provider.
+- [ ] A **pagination helper** that reads the `{ count, next, previous, results }` envelope
+      (FRONTEND_API §2.4) — every list endpoint uses it, so build it once here.
+- [ ] `src/lib/money.ts`: a Toman formatter (integer → grouped, Persian numerals). Amounts
+      are sent/received as raw integers; formatting is display-only (CONTEXT — Toman).
+- [ ] `useFunds()` query hook → `GET /api/funds/`; render `results` in an Ant Design `Table`
+      showing name + `monthly_share_amount` (formatted).
+- [ ] "Create fund" modal: Ant Design `Form` + Zod for `name`, `monthly_share_amount`,
+      `default_loan_amount`, `default_installment_count`, `contribution_day` (1–28).
+      `useCreateFund()` mutation → `POST /api/funds/`; on success invalidate the funds query
+      so the list refetches.
+
+**How to verify:**
+- Funds list loads and shows funds you own (cross-check against Swagger UI / the DB).
+- Create a fund → it appears in the list without a manual page refresh (cache invalidation).
+- Money columns show grouped Persian numerals, but the request body sends a raw integer
+  (check the Network tab payload).
+- Submit `contribution_day = 40` → blocked by Zod / shows `contribution_day: ["max_value"]`.
+
+**Done when:**
+- [ ] Funds you own are listed via the pagination envelope.
+- [ ] Creating a fund updates the list automatically.
+- [ ] Toman formatting is display-only; payloads carry integers.
+
+---
+
+## Phase 4 — Fund scope in the URL
+
+**Goal:** open a fund and enter its scoped section. The fund id lives in the route; a header
+switcher changes funds by navigating. This is the frame all member/wallet/loan screens hang on.
+
+**Implements:** ADR 0006 (active fund in the URL, no global "current fund").
+
+**Build:**
+- [ ] Nested routes under `/funds/:fundId/...` (start with an overview screen).
+- [ ] Clicking a fund in the Phase 3 list navigates to `/funds/:fundId`.
+- [ ] A small hook that reads `fundId` from the route param — the single source of truth for
+      "which fund" (every scoped query key and API call derives from it).
+- [ ] Header fund switcher (Ant Design `Select`/dropdown of your funds) that navigates to the
+      same screen under a different `:fundId`.
+- [ ] A fund-overview screen fetching `GET /api/funds/{id}/` and showing its settings.
+
+**How to verify:**
+- Click a fund → URL becomes `/funds/<id>` and shows that fund's settings.
+- Change the fund in the header dropdown → URL id changes and content updates.
+- Paste a `/funds/<id>` URL into a new tab → it deep-links straight to that fund (bookmarkable).
+- Visit `/funds/<id-you-don't-own>` → handled as `404 NOT_FOUND` (not a crash), per tenant
+  isolation (FRONTEND_API §2.3).
+
+**Done when:**
+- [ ] The fund id comes only from the URL; there's no global current-fund state.
+- [ ] The switcher and deep-links both work; back/forward behave correctly.
+- [ ] A not-yours fund id shows a clean "not found," not an error screen.
+
+---
+
+## Phase 5 — Members: list + add
+
+**Goal:** inside a fund, list members and add one by phone. Exercises nested-under-fund
+create and a domain error code.
+
+**Implements:** FRONTEND_API §6.1–6.2.
+
+**Build:**
+- [ ] `useMembers(fundId)` → `GET /api/funds/{fundId}/members/` (paginated); render in a table.
+- [ ] "Add member" form + Zod: `phone` (required), `share_count` (≥1), optional `full_name`,
+      optional `cards`. `useAddMember()` → `POST /api/funds/{fundId}/members/`; invalidate the
+      members query on success.
+- [ ] Handle `400 MEMBER_ALREADY_EXISTS` (show a friendly "already a member" message keyed off
+      the code) and `VALIDATION_ERROR` field codes.
+
+**How to verify:**
+- Add a member → appears in the list without manual refresh.
+- Add the **same** phone again → `MEMBER_ALREADY_EXISTS` shown as a readable Persian message,
+  not a raw error.
+- Submit `share_count = 0` → blocked with `share_count: ["min_value"]`.
+
+**Done when:**
+- [ ] Members list loads for the active fund.
+- [ ] Adding a member updates the list; duplicate and validation errors are handled by `code`.
+
+---
+
+## Phase 6 — Bank transfer → wallet updates (skeleton closes)
+
+**Goal:** record an incoming bank transfer and watch the matched member's wallet balance
+change via auto-settlement. This **completes the walking skeleton.**
+
+**Implements:** FRONTEND_API §9.2, §6.5, §12 (settlement is automatic; refetch after).
+Introduces the first date **input** — pull in the Jalali layer here (see note below).
+
+> **Jalali note:** `transfer_datetime` is the first place the user enters a date, so this
+> phase is where the Jalali date layer (Phase 8) first pays off. You may either do a minimal
+> version of Phase 8 now (a single wired-up Jalali datetime picker) or temporarily use a plain
+> input and backfill Phase 8 — your call. Either way, what goes on the wire is Gregorian/UTC
+> (ADR 0004).
+
+**Build:**
+- [ ] "Record transfer" form: `amount`, `transfer_datetime`, `from_card`, optional
+      `tracking_code`/`note`. `usePostBankTransaction(fundId)` → `POST /api/funds/{fundId}/bank-transactions/`.
+- [ ] A member wallet view: `useWallet(memberId)` → `GET /api/members/{id}/wallet/`, showing
+      the top-level `balance` and the ledger `results` (immutable rows, oldest first).
+- [ ] After posting a transfer, **invalidate/refetch** the affected member's wallet (and later
+      their loans) — settlement runs server-side on the deposit, so the client must refetch to
+      see new payments (FRONTEND_API §12).
+- [ ] Show whether the new transaction auto-matched (`matched_member`, `wallet_charged`).
+
+**How to verify (the end-to-end skeleton test):**
+1. Log in.
+2. See your funds list; open (or create) a fund.
+3. Add a member **with a card number**.
+4. Record a bank transfer whose `from_card` matches that card.
+5. The transaction shows `wallet_charged: true`, and the member's **wallet balance updates**
+   (and pending dues settle, if any exist).
+- Also record a transfer with a **non-matching** card → it lands unmatched
+  (`matched_member: null`); confirm it appears when you later build the unmatched queue (Phase 9).
+
+**Done when:**
+- [ ] The full flow log-in → fund → member → transfer → balance-updates works against the real
+      backend, end to end.
+- [ ] Dates sent to the API are Gregorian/UTC regardless of what the picker displays.
+
+---
+
+> ### ✅ Milestone: walking skeleton complete
+> Phases 0–6 give you one working thread through the whole app. Everything below is **fan-out**
+> — broaden each area. Re-order the fan-out phases by what you need next; they don't strictly
+> depend on each other the way 0–6 do.
+
+---
+
+## Phase 7 — Error, loading & empty-state polish
+
+**Goal:** make the shared UX solid before adding breadth, so every later screen inherits it.
+
+**Build:**
+- [ ] A global error boundary + a consistent way to surface API `code` errors as Persian
+      messages (one mapping table, keyed by code — FRONTEND_API §9/§11).
+- [ ] Standard loading (skeletons/spinners) and empty states for lists.
+- [ ] Session-expiry handling: when refresh finally fails, route to login with a clear message.
+
+**Done when:**
+- [ ] Every list has loading + empty states; API errors render as readable Persian text.
+- [ ] A fully-expired session lands the user on login without a dead screen.
+
+---
+
+## Phase 8 — Jalali date layer (formalized)
+
+**Goal:** the thin Jalali↔Gregorian conversion boundary, wired into Ant Design's date
+components, used everywhere dates appear.
+
+**Implements:** ADR 0004 (Jalali only at the UI edge).
+
+**Build:**
+- [ ] `dayjs` + a Persian-calendar plugin; a **small** set of parse/format helpers
+      (Jalali string ↔ Gregorian `YYYY-MM-DD` / ISO UTC). All conversion lives *only* here.
+- [ ] Wire Ant Design `DatePicker` to display Jalali while emitting Gregorian values.
+- [ ] Audit: no Jalali string appears in any query key, payload, or comparison — only in a
+      rendered label or a raw input (a Jalali value anywhere else is a bug, per ADR 0004).
+
+**How to verify:**
+- Pick a date in a picker → it displays in Jalali; the Network payload shows the Gregorian
+  equivalent.
+- Dates from the API render as Jalali on screen but are stored/compared as Gregorian.
+
+**Done when:**
+- [ ] All date input/display goes through the helper layer; nothing else touches Jalali.
+
+---
+
+## Phase 9 — Bank reconciliation: list + unmatched queue + manual assign
+
+**Goal:** the user's day-to-day money-in workflow.
+
+**Implements:** FRONTEND_API §9.1, §9.3, §9.5, §9.6.
+
+**Build:**
+- [ ] Bank-transactions list (`GET .../bank-transactions/`, newest first, paginated).
+- [ ] Unmatched queue (`GET .../bank-transactions/unmatched/`).
+- [ ] Manual assign (`POST /api/bank-transactions/{id}/assign/`) → refetch wallet; handle
+      `BANK_TRANSACTION_ALREADY_CHARGED`.
+- [ ] Rematch (`POST /api/bank-transactions/{id}/rematch/`) after adding a card.
+
+**Done when:**
+- [ ] Unmatched transfers can be assigned to a member and charge the wallet.
+- [ ] Already-charged and rematch edge cases are handled by `code`.
+
+---
+
+## Phase 10 — Wallet detail: ledger + adjustments + settle
+
+**Goal:** full wallet management for a member.
+
+**Implements:** FRONTEND_API §6.5–6.7.
+
+**Build:**
+- [ ] Paginated ledger view with `balance`, direction/type per row.
+- [ ] Manual adjustment (`POST .../adjustments/`): credit/debit + required description; handle
+      `WALLET_OVERDRAFT` and `ADJUSTMENT_DESCRIPTION_REQUIRED`; refetch after a credit (it
+      auto-settles).
+- [ ] Manual settle button (`POST .../settle/`) → refetch wallet + affected loans.
+
+**Done when:**
+- [ ] Adjustments and manual settlement work; overdraft is blocked with a clear message.
+
+---
+
+## Phase 11 — Loans & installments
+
+**Goal:** issue loans and view their installment schedules.
+
+**Implements:** FRONTEND_API §7, §8.
+
+**Build:**
+- [ ] Loans list per fund (`GET .../loans/`, each with inlined installments).
+- [ ] Create loan (`POST .../loans/`) with fund-default fallbacks; handle
+      `INSTALLMENTS_TO_GENERATE_EXCEEDS_COUNT`, `LOAN_AMOUNT_TOO_SMALL`.
+- [ ] Loan detail (`GET /api/loans/{id}/`) with the installment schedule.
+- [ ] Reverse a paid due (`POST /api/dues/{id}/reverse-payment/`); handle `DUE_NOT_PAID`;
+      refetch wallet + loan (a reversal can flip `COMPLETED` → `ACTIVE`).
+
+**Done when:**
+- [ ] Loans can be created and viewed with their schedules; payment reversal works.
+
+---
+
+## Phase 12 — Fund settings + monthly report
+
+**Goal:** edit fund settings and read the monthly summary.
+
+**Implements:** FRONTEND_API §5.4, §5.6.
+
+**Build:**
+- [ ] Edit fund settings (`PATCH /api/funds/{id}/`); note settings apply to future ops only.
+- [ ] Monthly report screen (`GET .../reports/monthly/?period_start=...`) showing expected vs
+      received contributions, active-loan totals, and member balances.
+
+**Done when:**
+- [ ] Settings can be edited; the monthly report renders for a chosen period.
+
+---
+
+## Deferred (not scheduled yet)
+
+- **Excel bulk import** (`POST .../bank-transactions/import/`, FRONTEND_API §9.4) — deferred
+  in `CLAUDE.md` until the sheet format is finalized.
+- **Automated end-to-end tests** (e.g. Playwright driving the Phase 6 skeleton flow) — optional;
+  add once the skeleton is stable if regressions start to hurt.
+
+---
+
+## Suggested "definition of done" for every phase
+
+Regardless of the phase, before ticking its last box:
+- `npm run build` (TypeScript) passes with no errors — generated types make API drift a
+  compile error, so this is a real check (ADR 0005).
+- The manual "How to verify" steps pass against the **real** backend.
+- New user-facing strings live in the central strings file, in Persian (ADR 0003).
+- Any date on the wire is Gregorian/UTC (ADR 0004); any money on the wire is a raw integer.
+- Every English/numeric input (phone, amounts, card numbers, tracking codes) uses
+  `normalize={normalizeDigits}` so Persian/Arabic digits become ASCII at the edge (ADR 0007) —
+  never on passwords/names.

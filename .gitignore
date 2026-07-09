@@ -38,3 +38,9 @@ coverage/
 # Generated API types (regenerated from the backend OpenAPI schema)
 # Keep this commented until we decide whether to commit generated output.
 # src/api/generated/
+
+# Claude Code local settings (personal, never commit)
+.claude/settings.local.json
+
+# TS incremental build info
+*.tsbuildinfo
