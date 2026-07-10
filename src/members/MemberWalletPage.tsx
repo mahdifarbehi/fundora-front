@@ -2,14 +2,16 @@ import { Alert, Button, Empty, Flex, Statistic, Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Link, useParams } from "react-router-dom";
 import { useFundId } from "../funds/fundScope";
+import { useMember } from "./hooks";
 import { useWallet } from "../wallets/hooks";
 import type { WalletTransaction } from "../wallets/api";
-import { formatToman } from "../lib/money";
+import { formatNumber, formatToman } from "../lib/money";
+import { toPersianDigits } from "../lib/digits";
 import { formatJalaliDate } from "../lib/jalali";
 import { ApiError } from "../lib/errors";
 import { errorMessage, strings } from "../lib/strings";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const columns: ColumnsType<WalletTransaction> = [
   {
@@ -42,14 +44,23 @@ const columns: ColumnsType<WalletTransaction> = [
 export default function MemberWalletPage() {
   const fundId = useFundId();
   const { memberId } = useParams<{ memberId: string }>();
+  const member = useMember(fundId, memberId!);
   const { data, isLoading, isError, error } = useWallet(memberId!);
+
+  const ownerName = member
+    ? member.user_full_name || toPersianDigits(member.user_phone)
+    : strings.wallet.unknownMember(formatNumber(Number(memberId)));
 
   return (
     <Flex vertical gap="middle">
       <Flex align="center" justify="space-between">
-        <Title level={4} style={{ margin: 0 }}>
-          {strings.wallet.title}
-        </Title>
+        <Flex vertical>
+          <Title level={4} style={{ margin: 0 }}>
+            {strings.wallet.of(ownerName)}
+          </Title>
+          {/* show phone as a subtitle only when the title is showing the name */}
+          {member?.user_full_name && <Text type="secondary">{toPersianDigits(member.user_phone)}</Text>}
+        </Flex>
         <Link to={`/funds/${fundId}/members`}>
           <Button>{strings.wallet.back}</Button>
         </Link>

@@ -14,6 +14,16 @@ export function useMembers(fundId: string) {
   });
 }
 
+/**
+ * A single member resolved from the fund's members list (there's no name-bearing GET for one
+ * member). Used to label a wallet / a matched bank transfer. `undefined` while loading or if
+ * the member is beyond the first page.
+ */
+export function useMember(fundId: string, memberId: string) {
+  const { data } = useMembers(fundId);
+  return data?.results.find((m) => String(m.id) === String(memberId));
+}
+
 /** Add a member to the fund, then invalidate the list so it refetches. */
 export function useAddMember(fundId: string) {
   const qc = useQueryClient();

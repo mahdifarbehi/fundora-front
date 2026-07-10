@@ -339,7 +339,9 @@ Introduces the first date **input** — pull in the Jalali layer here (see note 
       backend:** transfer with a member's card → `matched_member` set, `wallet_charged: true`,
       and the member's wallet balance = the deposit (500,000); non-matching card → unmatched.
 - [x] Dates sent to the API are Gregorian/UTC (`dayjs.toISOString()`).
-- [ ] **(your click-test)** Drive the full flow in the browser.
+- [x] **(your click-test)** Drive the full flow in the browser. *(User confirmed the
+      end-to-end thread — record transfer → matched member named on the bank page → wallet
+      shows the owner + balance.)*
 
 ---
 

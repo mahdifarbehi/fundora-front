@@ -103,13 +103,17 @@ export const strings = {
     colDate: "تاریخ واریز",
     colCard: "کارت مبدأ",
     colTracking: "کد پیگیری",
+    colMember: "عضو",
     colStatus: "وضعیت",
     statusCharged: "تطبیق و شارژ شد",
     statusUnmatched: "بدون تطبیق",
+    matchedTo: (name: string) => `به کیف پول «${name}» واریز و تطبیق شد.`,
   },
 
   wallet: {
     title: "کیف پول",
+    of: (name: string) => `کیف پول ${name}`,
+    unknownMember: (idFa: string) => `عضو #${idFa}`,
     balance: "موجودی",
     empty: "تراکنشی ثبت نشده است.",
     colAmount: "مبلغ",
