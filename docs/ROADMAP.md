@@ -306,14 +306,23 @@ Introduces the first date **input** — pull in the Jalali layer here (see note 
 > (ADR 0004).
 
 **Build:**
-- [ ] "Record transfer" form: `amount`, `transfer_datetime`, `from_card`, optional
-      `tracking_code`/`note`. `usePostBankTransaction(fundId)` → `POST /api/funds/{fundId}/bank-transactions/`.
-- [ ] A member wallet view: `useWallet(memberId)` → `GET /api/members/{id}/wallet/`, showing
-      the top-level `balance` and the ledger `results` (immutable rows, oldest first).
-- [ ] After posting a transfer, **invalidate/refetch** the affected member's wallet (and later
-      their loans) — settlement runs server-side on the deposit, so the client must refetch to
-      see new payments (FRONTEND_API §12).
-- [ ] Show whether the new transaction auto-matched (`matched_member`, `wallet_charged`).
+- [x] "Record transfer" form (`bank/RecordTransferModal.tsx`): `amount` (`MoneyInput`),
+      `transfer_datetime`, `from_card`/`tracking_code` (digit-normalized), `note`.
+      `usePostBankTransaction(fundId)` → `POST /api/funds/{fundId}/bank-transactions/`.
+- [x] `BankPage` (`/funds/:fundId/bank`) with the record button + a result banner showing
+      whether it matched/charged, linking to the matched member's wallet.
+- [x] `MemberWalletPage` (`/funds/:fundId/members/:memberId/wallet`): `useWallet(memberId)`
+      → balance (`Statistic`) + ledger table (amount ±, Persian type, Jalali date). Reached
+      by clicking a member row.
+- [x] `usePostBankTransaction` invalidates the bank list **and** the matched member's wallet
+      on success, so the balance/settlement refetches (FRONTEND_API §12).
+- [x] Result banner shows `wallet_charged` (matched) vs unmatched.
+- [x] Wallet ledger types hand-written (`wallets/api.ts`) — the custom action isn't in the
+      generated schema.
+
+> **Date input:** `transfer_datetime` uses the **Jalali** `JalaliDateTimeInput` (plain
+> day/month/year + h:m:s field entry, Persian numerals + month names), emitting a Gregorian/UTC
+> ISO string. Brought the Jalali layer (Phase 8) forward — see ADR 0004 for the mechanism.
 
 **How to verify (the end-to-end skeleton test):**
 1. Log in.
@@ -326,9 +335,11 @@ Introduces the first date **input** — pull in the Jalali layer here (see note 
   (`matched_member: null`); confirm it appears when you later build the unmatched queue (Phase 9).
 
 **Done when:**
-- [ ] The full flow log-in → fund → member → transfer → balance-updates works against the real
-      backend, end to end.
-- [ ] Dates sent to the API are Gregorian/UTC regardless of what the picker displays.
+- [x] Code complete; `tsc -b` clean, modules transform. **Verified end-to-end against the real
+      backend:** transfer with a member's card → `matched_member` set, `wallet_charged: true`,
+      and the member's wallet balance = the deposit (500,000); non-matching card → unmatched.
+- [x] Dates sent to the API are Gregorian/UTC (`dayjs.toISOString()`).
+- [ ] **(your click-test)** Drive the full flow in the browser.
 
 ---
 
@@ -355,27 +366,27 @@ Introduces the first date **input** — pull in the Jalali layer here (see note 
 
 ---
 
-## Phase 8 — Jalali date layer (formalized)
+## Phase 8 — Jalali date layer — DONE (brought forward in Phase 6)
 
-**Goal:** the thin Jalali↔Gregorian conversion boundary, wired into Ant Design's date
-components, used everywhere dates appear.
+**Goal:** the thin Jalali↔Gregorian conversion boundary, used everywhere dates appear.
 
-**Implements:** ADR 0004 (Jalali only at the UI edge).
+**Implements:** ADR 0004 (Jalali only at the UI edge) — mechanism revised, see ADR.
 
 **Build:**
-- [ ] `dayjs` + a Persian-calendar plugin; a **small** set of parse/format helpers
-      (Jalali string ↔ Gregorian `YYYY-MM-DD` / ISO UTC). All conversion lives *only* here.
-- [ ] Wire Ant Design `DatePicker` to display Jalali while emitting Gregorian values.
-- [ ] Audit: no Jalali string appears in any query key, payload, or comparison — only in a
-      rendered label or a raw input (a Jalali value anywhere else is a bug, per ADR 0004).
+- [x] Conversion helpers confined to `src/lib/jalali.ts`: `Intl` Persian calendar for display
+      (`formatJalaliDate`, day-of-month possibilities) + `jalaali-js` for input
+      (`isoToJalaliParts` / `jalaliPartsToIso`). *(Chose Intl + jalaali-js over dayjs + a
+      plugin; a calendar-popup DatePicker on Ant v6 was impractical — ADR 0004 updated.)*
+- [x] `JalaliDateTimeInput` — plain day / month-name / year (+ optional h:m:s) field entry,
+      Persian numerals, emits Gregorian/UTC ISO. In use for `transfer_datetime` (Phase 6).
+- [x] Round-trip verified (ISO → Jalali parts → same ISO); invalid Jalali dates rejected via
+      `isValidJalaaliDate`.
 
-**How to verify:**
-- Pick a date in a picker → it displays in Jalali; the Network payload shows the Gregorian
-  equivalent.
-- Dates from the API render as Jalali on screen but are stored/compared as Gregorian.
+**Remaining:** as later phases add date fields (loan `issue_date`, report `period_start`),
+reuse `JalaliDateTimeInput` (date-only, `showTime={false}`) — no new date infrastructure needed.
 
 **Done when:**
-- [ ] All date input/display goes through the helper layer; nothing else touches Jalali.
+- [x] All date input/display goes through `src/lib/jalali.ts`; nothing else touches Jalali.
 
 ---
 

@@ -16,20 +16,31 @@ is a separate, already-built Django/DRF API.
   changes to the stack or approach).
 
 ## Current status (update this as it changes)
-- **Design is done; no frontend app code written yet.** We ran a full design/grilling
-  session and recorded the decisions in `docs/adr/` (0001–0006).
-- **Backend cookie auth is DONE and pushed.** The httpOnly-cookie login/refresh/logout
-  endpoints (ADR 0002) are implemented in the `fundora` backend repo; `FRONTEND_API.md`
-  here reflects the live contract. No longer blocked.
-- **Next up: build the *walking skeleton*** — one thin end-to-end flow: log in → funds
-  list → open/create a fund → add a member → record a bank transfer → wallet balance
-  updates. Build this before any breadth.
-- **The phased build plan is in `docs/ROADMAP.md`** — numbered, testable phases (0–6 are
-  the walking skeleton, 7+ fan out). Follow it top-to-bottom and tick the checkboxes.
-  Phases 0–4 done (scaffold/RTL, auth+network, routing + shell + login/register, funds
-  list + create, fund scope in URL). **Phase 5 (members: list + add, fund sub-nav)
-  code-complete, pending browser click-test; Phase 6 (bank transfer → wallet, closes the
-  walking skeleton) is next.**
+
+**The phased build plan is `docs/ROADMAP.md`** — numbered, testable phases with checkboxes.
+It is the source of truth for progress; this section is the short summary.
+
+- **Done & pushed:** Phases 0–6 (the walking skeleton: log in → fund → member → record
+  bank transfer → wallet balance updates, verified end-to-end against the real backend),
+  **plus** the Jalali date layer (Phase 8 — `JalaliDateTimeInput`) and the bank-transactions
+  **list** (part of Phase 9), both brought forward.
+- **Backend changes made this project (repo `../fundora`, pushed):** `Member` serializer
+  returns `user_phone`/`user_full_name`; card-conflict returns `400 CARD_ALREADY_REGISTERED`
+  atomically; the duplicate `FRONTEND_API.md` was removed (this repo's copy is canonical).
+- **Pending user browser click-tests:** the `- [ ] (your click-test)` boxes in `ROADMAP.md`
+  for Phases 2–6. Code is verified (typecheck + module transforms + backend contract via
+  curl); only the in-browser confirmation is outstanding.
+- **Next to build (fan-out, your pick):** Phase 7 (error/loading/session-expiry polish),
+  Phase 9 remainder (**unmatched queue + manual assign/rematch** — the orange "بدون تطبیق"
+  rows), Phase 10 (wallet detail: adjustments + settle), Phase 11 (loans), Phase 12 (reports).
+  Recommended default if unsure: **Phase 9 remainder** (we just built the bank list).
+
+### Resuming a session (if the user just says "continue")
+1. Read `docs/ROADMAP.md` — the checkboxes show exactly what's done vs. next.
+2. Read the status above for the recommended next phase.
+3. Follow the **per-part completion protocol** in "How to work with this user" below.
+4. The backend runs at `http://localhost:8000`; a throwaway login is `09129999999` /
+   `phase1-test-pw-9` (owns fund **6**, which has members سارا/رضا + two bank transactions).
 
 ## Locked decisions (details in docs/adr/)
 - **Stack:** React + Vite SPA + TypeScript. (0001)
@@ -37,8 +48,9 @@ is a separate, already-built Django/DRF API.
   silent refresh on 401 with a request queue. Implemented in the backend; call auth
   endpoints with credentials included. (0002)
 - **Locale:** Persian-only, RTL, no i18n runtime; strings centralized. (0003)
-- **Dates:** Jalali only at the UI edge; all state/API is Gregorian/UTC. `dayjs` + a
-  Persian-calendar plugin, wired into Ant Design's date components. (0004)
+- **Dates:** Jalali only at the UI edge; all state/API is Gregorian/UTC. Conversion in
+  `src/lib/jalali.ts` — `Intl` Persian calendar (display) + `jalaali-js` (input); date entry
+  via the plain `JalaliDateTimeInput` (not an Ant calendar popup). (0004)
 - **Digits:** English/numeric fields (phone, Toman amounts, card numbers, tracking codes)
   normalize Persian/Arabic digits → ASCII at the input edge via `normalizeDigits`
   (`src/lib/digits.ts`); never on passwords/names. (0007)
@@ -56,6 +68,18 @@ is a separate, already-built Django/DRF API.
   backend terms (Django admin, ORMs, migrations, urls.py analogies), avoid unexplained
   jargon, and give a clear recommendation.
 - When offering choices, present them as **organized pros/cons** so they can compare.
+- **Never commit or push without explicit approval.** (Backend repo `../fundora` too.)
+
+### Per-part completion protocol (agreed workflow)
+When a part/phase is code-complete, do this every time:
+1. Verify what you can yourself (typecheck `npx tsc -b`, module transforms, and the backend
+   contract via curl against `localhost:8000`).
+2. **Tell the user the exact, numbered steps to test in the browser** — clicks, inputs,
+   expected results — and **explicitly say what is deferred to later phases**.
+3. **Do NOT tick the ROADMAP "(your click-test)" boxes yet.** Wait for the user to test.
+4. Only **after the user says it's fine** ("there is no problem"/similar), update
+   `docs/ROADMAP.md` (check the boxes) and the status above — yourself.
+5. Commit/push only when the user asks.
 
 ## Build approach
 - Walking-skeleton first (thin end-to-end slice), then fan out into full Setup →
