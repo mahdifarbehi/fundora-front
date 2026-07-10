@@ -1,13 +1,18 @@
 import { useState } from "react";
-import { Alert, Button, Empty, Flex, Table, Tag, Typography } from "antd";
+import { Alert, Badge, Button, Empty, Flex, Space, Table, Tabs, Tag, Typography, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { Link } from "react-router-dom";
 import { useFundId } from "../funds/fundScope";
 import { useMembers } from "../members/hooks";
 import type { Member } from "../members/api";
-import { useBankTransactions } from "./hooks";
+import {
+  useBankTransactions,
+  useUnmatchedBankTransactions,
+  useRematchBankTransaction,
+} from "./hooks";
 import RecordTransferModal from "./RecordTransferModal";
+import AssignMemberModal from "./AssignMemberModal";
 import type { BankTransaction } from "./api";
 import { formatToman } from "../lib/money";
 import { toPersianDigits } from "../lib/digits";
@@ -15,7 +20,7 @@ import { formatJalaliDate } from "../lib/jalali";
 import { ApiError } from "../lib/errors";
 import { errorMessage, strings } from "../lib/strings";
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 // The bank transaction only carries matched_member (id); resolve the name from the members
 // list (there's no name-bearing single-member GET).
@@ -25,22 +30,27 @@ function memberLabel(member: Member | undefined, id: number | null): string {
   return member.user_full_name || toPersianDigits(member.user_phone);
 }
 
-function buildColumns(byId: Map<number, Member>): ColumnsType<BankTransaction> {
+// Columns shared by both tables (amount / date / card / tracking).
+const baseColumns: ColumnsType<BankTransaction> = [
+  { title: strings.bank.colAmount, dataIndex: "amount", key: "amount", render: (v: number) => formatToman(v) },
+  {
+    title: strings.bank.colDate,
+    dataIndex: "transfer_datetime",
+    key: "transfer_datetime",
+    render: (v: string) => formatJalaliDate(v),
+  },
+  { title: strings.bank.colCard, dataIndex: "from_card", key: "from_card", render: (v: string) => toPersianDigits(v) },
+  {
+    title: strings.bank.colTracking,
+    dataIndex: "tracking_code",
+    key: "tracking_code",
+    render: (v: string) => (v ? toPersianDigits(v) : "—"),
+  },
+];
+
+function buildAllColumns(byId: Map<number, Member>): ColumnsType<BankTransaction> {
   return [
-    { title: strings.bank.colAmount, dataIndex: "amount", key: "amount", render: (v: number) => formatToman(v) },
-    {
-      title: strings.bank.colDate,
-      dataIndex: "transfer_datetime",
-      key: "transfer_datetime",
-      render: (v: string) => formatJalaliDate(v),
-    },
-    { title: strings.bank.colCard, dataIndex: "from_card", key: "from_card", render: (v: string) => toPersianDigits(v) },
-    {
-      title: strings.bank.colTracking,
-      dataIndex: "tracking_code",
-      key: "tracking_code",
-      render: (v: string) => (v ? toPersianDigits(v) : "—"),
-    },
+    ...baseColumns,
     {
       title: strings.bank.colMember,
       key: "member",
@@ -59,15 +69,114 @@ function buildColumns(byId: Map<number, Member>): ColumnsType<BankTransaction> {
   ];
 }
 
+function AllTransactions({ fundId, membersById }: { fundId: string; membersById: Map<number, Member> }) {
+  const { data, isLoading, isError, error } = useBankTransactions(fundId);
+  return (
+    <Flex vertical gap="middle">
+      {isError && (
+        <Alert
+          type="error"
+          showIcon
+          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
+        />
+      )}
+      <Table<BankTransaction>
+        rowKey="id"
+        columns={buildAllColumns(membersById)}
+        dataSource={data?.results ?? []}
+        loading={isLoading}
+        pagination={false}
+        locale={{ emptyText: <Empty description={strings.bank.empty} /> }}
+      />
+    </Flex>
+  );
+}
+
+function UnmatchedQueue({ fundId, membersById }: { fundId: string; membersById: Map<number, Member> }) {
+  const { data, isLoading, isError, error } = useUnmatchedBankTransactions(fundId);
+  const rematch = useRematchBankTransaction(fundId);
+  const [assignFor, setAssignFor] = useState<BankTransaction | null>(null);
+  // Which row is currently re-matching, so only its button shows a spinner.
+  const [rematchingId, setRematchingId] = useState<number | null>(null);
+
+  const onRematch = (row: BankTransaction) => {
+    setRematchingId(row.id);
+    rematch.mutate(row.id, {
+      onSuccess: (txn) => {
+        if (txn.matched_member != null) {
+          message.success(strings.bank.rematchMatched(memberLabel(membersById.get(txn.matched_member), txn.matched_member)));
+        } else {
+          message.info(strings.bank.rematchStillUnmatched);
+        }
+      },
+      onError: (err) => {
+        message.error(errorMessage(err instanceof ApiError ? err.code : "UNKNOWN"));
+      },
+      onSettled: () => setRematchingId(null),
+    });
+  };
+
+  const columns: ColumnsType<BankTransaction> = [
+    ...baseColumns,
+    {
+      title: strings.bank.colActions,
+      key: "actions",
+      render: (_, row) => (
+        <Space>
+          <Button size="small" type="primary" onClick={() => setAssignFor(row)}>
+            {strings.bank.assign}
+          </Button>
+          <Button
+            size="small"
+            onClick={() => onRematch(row)}
+            loading={rematchingId === row.id}
+          >
+            {strings.bank.rematch}
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <Flex vertical gap="middle">
+      <Paragraph type="secondary" style={{ margin: 0 }}>
+        {strings.bank.unmatchedHint}
+      </Paragraph>
+      {isError && (
+        <Alert
+          type="error"
+          showIcon
+          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
+        />
+      )}
+      <Table<BankTransaction>
+        rowKey="id"
+        columns={columns}
+        dataSource={data?.results ?? []}
+        loading={isLoading}
+        pagination={false}
+        locale={{ emptyText: <Empty description={strings.bank.unmatchedEmpty} /> }}
+      />
+      <AssignMemberModal
+        fundId={fundId}
+        transaction={assignFor}
+        open={assignFor != null}
+        onClose={() => setAssignFor(null)}
+      />
+    </Flex>
+  );
+}
+
 export default function BankPage() {
   const fundId = useFundId();
   const [modalOpen, setModalOpen] = useState(false);
   const [last, setLast] = useState<BankTransaction | null>(null);
-  const { data, isLoading, isError, error } = useBankTransactions(fundId);
   const { data: membersData } = useMembers(fundId);
+  const { data: unmatchedData } = useUnmatchedBankTransactions(fundId);
 
   const membersById = new Map((membersData?.results ?? []).map((m) => [m.id, m]));
-  const columns = buildColumns(membersById);
+  const unmatchedCount = unmatchedData?.count ?? 0;
 
   return (
     <Flex vertical gap="middle">
@@ -102,21 +211,23 @@ export default function BankPage() {
         />
       )}
 
-      {isError && (
-        <Alert
-          type="error"
-          showIcon
-          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
-        />
-      )}
-
-      <Table<BankTransaction>
-        rowKey="id"
-        columns={columns}
-        dataSource={data?.results ?? []}
-        loading={isLoading}
-        pagination={false}
-        locale={{ emptyText: <Empty description={strings.bank.empty} /> }}
+      <Tabs
+        items={[
+          {
+            key: "all",
+            label: strings.bank.tabAll,
+            children: <AllTransactions fundId={fundId} membersById={membersById} />,
+          },
+          {
+            key: "unmatched",
+            label: (
+              <Badge count={unmatchedCount} size="small" offset={[10, 0]}>
+                {strings.bank.tabUnmatched}
+              </Badge>
+            ),
+            children: <UnmatchedQueue fundId={fundId} membersById={membersById} />,
+          },
+        ]}
       />
 
       <RecordTransferModal

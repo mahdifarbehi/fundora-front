@@ -22,8 +22,8 @@ It is the source of truth for progress; this section is the short summary.
 
 - **Done & pushed:** Phases 0–6 (the walking skeleton: log in → fund → member → record
   bank transfer → wallet balance updates, verified end-to-end against the real backend),
-  **plus** the Jalali date layer (Phase 8 — `JalaliDateTimeInput`) and the bank-transactions
-  **list** (part of Phase 9), both brought forward.
+  **plus** the Jalali date layer (Phase 8 — `JalaliDateTimeInput`) and **all of Phase 9**
+  (bank list + unmatched queue + manual assign/rematch, user-confirmed in the browser).
 - **Backend changes made this project (repo `../fundora`, pushed):** `Member` serializer
   returns `user_phone`/`user_full_name`; card-conflict returns `400 CARD_ALREADY_REGISTERED`
   atomically; the duplicate `FRONTEND_API.md` was removed (this repo's copy is canonical).
@@ -31,9 +31,10 @@ It is the source of truth for progress; this section is the short summary.
   for Phases 2–6. Code is verified (typecheck + module transforms + backend contract via
   curl); only the in-browser confirmation is outstanding.
 - **Next to build (fan-out, your pick):** Phase 7 (error/loading/session-expiry polish),
-  Phase 9 remainder (**unmatched queue + manual assign/rematch** — the orange "بدون تطبیق"
-  rows), Phase 10 (wallet detail: adjustments + settle), Phase 11 (loans), Phase 12 (reports).
-  Recommended default if unsure: **Phase 9 remainder** (we just built the bank list).
+  Phase 10 (wallet detail: adjustments + settle), Phase 11 (loans), Phase 12 (reports).
+  Recommended default if unsure: **Phase 10** (wallet detail — extends the wallet page and
+  member card-editing that makes Phase 9's rematch fully useful), or **Phase 7** for the
+  cross-cutting UX polish every later screen inherits.
 
 ### Resuming a session (if the user just says "continue")
 1. Read `docs/ROADMAP.md` — the checkboxes show exactly what's done vs. next.

@@ -34,3 +34,43 @@ export async function postBankTransaction(
   const { data } = await api.post<BankTransaction>(`/funds/${fundId}/bank-transactions/`, input);
   return data;
 }
+
+/**
+ * GET /api/funds/{fundId}/bank-transactions/unmatched/ — the manual-assignment queue
+ * (transactions with `matched_member == null`), newest first, paginated (FRONTEND_API §9.3).
+ */
+export async function listUnmatchedBankTransactions(
+  fundId: string,
+  params: PageParams = {},
+): Promise<Paginated<BankTransaction>> {
+  const { data } = await api.get<Paginated<BankTransaction>>(
+    `/funds/${fundId}/bank-transactions/unmatched/`,
+    { params },
+  );
+  return data;
+}
+
+/**
+ * POST /api/bank-transactions/{id}/assign/ — manually assign a member and charge their wallet
+ * (FRONTEND_API §9.5). Not fund-scoped in the URL. `400 BANK_TRANSACTION_ALREADY_CHARGED` if
+ * the transaction was already charged.
+ */
+export async function assignBankTransaction(
+  id: number,
+  memberId: number,
+): Promise<BankTransaction> {
+  const { data } = await api.post<BankTransaction>(`/bank-transactions/${id}/assign/`, {
+    member_id: memberId,
+  });
+  return data;
+}
+
+/**
+ * POST /api/bank-transactions/{id}/rematch/ — re-run card-based auto-matching on an uncharged
+ * transaction (FRONTEND_API §9.6). Useful after the person's card was added. Empty body; a
+ * no-op if already charged.
+ */
+export async function rematchBankTransaction(id: number): Promise<BankTransaction> {
+  const { data } = await api.post<BankTransaction>(`/bank-transactions/${id}/rematch/`, {});
+  return data;
+}

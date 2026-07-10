@@ -108,6 +108,24 @@ export const strings = {
     statusCharged: "تطبیق و شارژ شد",
     statusUnmatched: "بدون تطبیق",
     matchedTo: (name: string) => `به کیف پول «${name}» واریز و تطبیق شد.`,
+
+    // Tabs + unmatched queue (Phase 9)
+    tabAll: "همه تراکنش‌ها",
+    tabUnmatched: "بدون تطبیق",
+    unmatchedEmpty: "تراکنش بدون تطبیقی وجود ندارد.",
+    unmatchedHint:
+      "این واریزی‌ها با هیچ عضوی تطبیق نشدند. یک عضو را دستی تخصیص دهید، یا پس از افزودن کارت عضو، تطبیق را دوباره اجرا کنید.",
+    colActions: "عملیات",
+    assign: "تخصیص عضو",
+    rematch: "تطبیق مجدد",
+    assignTitle: "تخصیص عضو به واریزی",
+    assignMemberLabel: "عضو",
+    assignMemberPlaceholder: "یک عضو را انتخاب کنید",
+    assignSubmit: "تخصیص و شارژ",
+    assignSuccess: (name: string) => `واریزی به «${name}» تخصیص و کیف پولش شارژ شد.`,
+    rematchMatched: (name: string) => `تطبیق داده شد: به «${name}» شارژ شد.`,
+    rematchStillUnmatched: "هنوز کارتی برای این واریزی پیدا نشد؛ بدون تطبیق ماند.",
+    assignMemberRequired: "انتخاب عضو الزامی است.",
   },
 
   wallet: {
@@ -192,6 +210,7 @@ export const strings = {
     NOT_FOUND: "موردی یافت نشد.",
     MEMBER_ALREADY_EXISTS: "این شماره از قبل عضو این صندوق است.",
     CARD_ALREADY_REGISTERED: "این شماره کارت قبلاً برای شخص دیگری ثبت شده است.",
+    BANK_TRANSACTION_ALREADY_CHARGED: "این واریزی قبلاً شارژ شده است.",
     NETWORK_ERROR: "خطای ارتباط با سرور. اتصال را بررسی کنید.",
     UNKNOWN: "خطای ناشناخته رخ داد.",
   } as Record<string, string>,

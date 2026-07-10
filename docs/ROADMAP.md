@@ -399,15 +399,23 @@ reuse `JalaliDateTimeInput` (date-only, `showTime={false}`) — no new date infr
 **Implements:** FRONTEND_API §9.1, §9.3, §9.5, §9.6.
 
 **Build:**
-- [ ] Bank-transactions list (`GET .../bank-transactions/`, newest first, paginated).
-- [ ] Unmatched queue (`GET .../bank-transactions/unmatched/`).
-- [ ] Manual assign (`POST /api/bank-transactions/{id}/assign/`) → refetch wallet; handle
-      `BANK_TRANSACTION_ALREADY_CHARGED`.
-- [ ] Rematch (`POST /api/bank-transactions/{id}/rematch/`) after adding a card.
+- [x] Bank-transactions list (`GET .../bank-transactions/`, newest first, paginated).
+      *(brought forward in Phase 6.)*
+- [x] Unmatched queue (`GET .../bank-transactions/unmatched/`) — a tabbed «بدون تطبیق» view on
+      `BankPage` with a live count badge.
+- [x] Manual assign (`POST /api/bank-transactions/{id}/assign/`) via `AssignMemberModal`
+      (member `Select`) → invalidates bank queries + the assigned member's wallet; handles
+      `BANK_TRANSACTION_ALREADY_CHARGED` and `member_id: ["required"]` as Persian messages.
+- [x] Rematch (`POST /api/bank-transactions/{id}/rematch/`) — per-row action; toasts whether it
+      matched or stayed unmatched. Most useful after adding the person's card (card-edit UI is
+      deferred; cards can be set at member creation today).
 
 **Done when:**
-- [ ] Unmatched transfers can be assigned to a member and charge the wallet.
-- [ ] Already-charged and rematch edge cases are handled by `code`.
+- [x] Unmatched transfers can be assigned to a member and charge the wallet. *(Verified against
+      the real backend: assign txn 2 → member 1, wallet 500,000 → 600,000; queue count → 0.)*
+- [x] Already-charged and rematch edge cases are handled by `code`. *(Re-assign →
+      `BANK_TRANSACTION_ALREADY_CHARGED` 400; rematch with no matching card → stays unmatched.
+      User confirmed the full flow in the browser.)*
 
 ---
 
