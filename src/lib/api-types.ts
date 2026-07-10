@@ -551,6 +551,8 @@ export interface components {
         Member: {
             readonly id: number;
             readonly user: number;
+            readonly user_phone: string;
+            readonly user_full_name: string;
             readonly fund: number;
             share_count: number;
             /** Format: date-time */
@@ -634,6 +636,8 @@ export interface components {
         PatchedMember: {
             readonly id?: number;
             readonly user?: number;
+            readonly user_phone?: string;
+            readonly user_full_name?: string;
             readonly fund?: number;
             share_count?: number;
             /** Format: date-time */

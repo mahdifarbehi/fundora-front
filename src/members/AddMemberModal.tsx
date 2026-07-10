@@ -72,6 +72,11 @@ export default function AddMemberModal({
               form.setFields([{ name: "phone", errors: [errorMessage(err.code)] }]);
               return;
             }
+            // CARD_ALREADY_REGISTERED carries the conflicting `number` — surface on the cards field.
+            if (err.code === "CARD_ALREADY_REGISTERED") {
+              form.setFields([{ name: "cards", errors: [errorMessage(err.code)] }]);
+              return;
+            }
             setFormError(errorMessage(err.code));
           } else {
             setFormError(errorMessage("UNKNOWN"));

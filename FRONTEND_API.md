@@ -360,13 +360,17 @@ standalone `/api/members/{id}/` routes.
 {
   "id": 4,
   "user": 20,
+  "user_phone": "09121111111",
+  "user_full_name": "Sara",
   "fund": 1,
   "share_count": 2,
   "created_at": "2026-07-01T09:05:00Z",
   "updated_at": "2026-07-01T09:05:00Z"
 }
 ```
-`user` and `fund` are read-only (`user` is the linked User id).
+`user`, `user_phone`, `user_full_name`, and `fund` are read-only. `user` is the linked User
+id; `user_phone`/`user_full_name` are that person's identity, denormalized onto the Member so
+a roster can show names/phones without a separate user lookup.
 
 ### 6.1 `GET /api/funds/{fund_pk}/members/` — list members of a fund
 Paginated envelope (§2.4) of Member objects. `404 NOT_FOUND` if the fund isn't yours.
@@ -397,6 +401,9 @@ a **password-less User** is created that the person can later activate via
 **Errors**
 - `400 {"code": "MEMBER_ALREADY_EXISTS", "phone": "09121111111"}` — this user is
   already a member of this fund.
+- `400 {"code": "CARD_ALREADY_REGISTERED", "number": "6037991111111111"}` — one of the
+  `cards` is already registered to a different person (card numbers are globally unique). The
+  whole request is rejected atomically — **no member is created** in this case.
 - `400 VALIDATION_ERROR` — e.g. `share_count: ["min_value"]`, `phone: ["required"]`.
 - `404 NOT_FOUND` — fund not yours.
 
@@ -801,6 +808,7 @@ auth/permission errors are covered in §2.
 | Code | Context fields | Raised by |
 |------|----------------|-----------|
 | `MEMBER_ALREADY_EXISTS` | `phone` | Add member (§6.2) |
+| `CARD_ALREADY_REGISTERED` | `number` | Add member (§6.2), replace cards (§6.4) |
 | `DUE_NOT_PAID` | `due_id` | Reverse payment (§8.1) |
 | `BANK_TRANSACTION_ALREADY_CHARGED` | `bank_transaction_id` | Assign member (§9.5) |
 | `INSTALLMENTS_TO_GENERATE_EXCEEDS_COUNT` | `installments_to_generate`, `installment_count` | Create loan (§7.2) |

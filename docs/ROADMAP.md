@@ -283,9 +283,11 @@ create and a domain error code.
 - [ ] **(your click-test)** Members list loads for the active fund; add updates it live.
 - [ ] **(your click-test)** Duplicate + validation errors render in Persian.
 
-> **API limitation found:** the members list returns only the `user` **id** (no name/phone) —
-> so the table shows «کاربر #N». A usable roster needs the backend to include the person's
-> name/phone on the `Member` serializer. Flagged; see the note after this phase.
+> **API limitation — RESOLVED:** the members list originally returned only the `user` id
+> (no name/phone). The backend `MemberSerializer` now includes read-only `user_phone` /
+> `user_full_name` (fundora repo, `members/serializers.py`); types were regenerated and the
+> roster shows real name + phone. The duplicate `FRONTEND_API.md` in the backend repo was
+> deleted — this frontend copy is now the single source of truth.
 
 ---
 

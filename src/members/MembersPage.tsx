@@ -7,6 +7,7 @@ import { useMembers } from "./hooks";
 import type { Member } from "./api";
 import AddMemberModal from "./AddMemberModal";
 import { formatNumber } from "../lib/money";
+import { toPersianDigits } from "../lib/digits";
 import { formatJalaliDate } from "../lib/jalali";
 import { ApiError } from "../lib/errors";
 import { errorMessage, strings } from "../lib/strings";
@@ -15,10 +16,16 @@ const { Title } = Typography;
 
 const columns: ColumnsType<Member> = [
   {
-    title: strings.members.colUser,
-    dataIndex: "user",
-    key: "user",
-    render: (v: number) => strings.members.userLabel(formatNumber(v)),
+    title: strings.members.colName,
+    dataIndex: "user_full_name",
+    key: "user_full_name",
+    render: (v: string) => v || strings.members.noName,
+  },
+  {
+    title: strings.members.colPhone,
+    dataIndex: "user_phone",
+    key: "user_phone",
+    render: (v: string) => toPersianDigits(v), // Persian digits, NOT grouped
   },
   {
     title: strings.members.colShareCount,
