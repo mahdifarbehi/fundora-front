@@ -7,6 +7,8 @@ import FundsPage from "../funds/FundsPage";
 import FundLayout from "../funds/FundLayout";
 import FundOverviewPage from "../funds/FundOverviewPage";
 import MembersPage from "../members/MembersPage";
+import MemberWalletPage from "../members/MemberWalletPage";
+import BankPage from "../bank/BankPage";
 
 // Route map (ADR 0006): /login is public; everything else is protected and rendered inside
 // the app shell. Fund-scoped routes (/funds/:fundId/...) get added under here in later phases.
@@ -24,6 +26,8 @@ export default function App() {
           <Route path="/funds/:fundId" element={<FundLayout />}>
             <Route index element={<FundOverviewPage />} />
             <Route path="members" element={<MembersPage />} />
+            <Route path="members/:memberId/wallet" element={<MemberWalletPage />} />
+            <Route path="bank" element={<BankPage />} />
           </Route>
         </Route>
       </Route>

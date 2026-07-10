@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Alert, Button, Empty, Flex, Table, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { useNavigate } from "react-router-dom";
 import { useFundId } from "../funds/fundScope";
 import { useMembers } from "./hooks";
 import type { Member } from "./api";
@@ -43,6 +44,7 @@ const columns: ColumnsType<Member> = [
 
 export default function MembersPage() {
   const fundId = useFundId();
+  const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const { data, isLoading, isError, error } = useMembers(fundId);
 
@@ -72,6 +74,10 @@ export default function MembersPage() {
         loading={isLoading}
         pagination={false}
         locale={{ emptyText: <Empty description={strings.members.empty} /> }}
+        onRow={(m) => ({
+          onClick: () => navigate(`/funds/${fundId}/members/${m.id}/wallet`),
+          style: { cursor: "pointer" },
+        })}
       />
 
       <AddMemberModal fundId={fundId} open={modalOpen} onClose={() => setModalOpen(false)} />

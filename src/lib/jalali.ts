@@ -1,10 +1,62 @@
-// Jalali (Persian-calendar) helpers used ONLY at the display edge (ADR 0004) — nothing here
-// changes what's stored or sent; the backend stays Gregorian. Conversion uses the browser's
-// built-in Persian calendar (Intl), so no dependency is needed for pure day-of-month math.
+// Jalali (Persian-calendar) helpers used ONLY at the display/input edge (ADR 0004) — nothing
+// here changes what's stored or sent; the backend stays Gregorian/UTC. Display conversions use
+// the browser's built-in Persian calendar (Intl); the date-*input* conversions (Jalali→Gregorian)
+// use jalaali-js, the canonical dependency-free algorithm.
 //
 // Purpose: the fund's `contribution_day` is a *Gregorian* day-of-month, but because the two
 // calendars drift, a fixed Gregorian day lands on a small SET of Jalali days across the year.
 // We surface that set (and a recommendation) so the user understands what they're picking.
+
+import { toGregorian, toJalaali, isValidJalaaliDate } from "jalaali-js";
+
+/** The six Jalali date-time parts as raw ASCII strings, as edited in a JalaliDateTimeInput. */
+export interface JalaliParts {
+  jy: string;
+  jm: string;
+  jd: string;
+  hh: string;
+  mm: string;
+  ss: string;
+}
+
+const EMPTY_PARTS: JalaliParts = { jy: "", jm: "", jd: "", hh: "", mm: "", ss: "" };
+
+const clamp = (n: number, lo: number, hi: number) => Math.min(Math.max(n, lo), hi);
+
+/** ISO/UTC string → Jalali date-time parts (using the browser's local wall-clock time). */
+export function isoToJalaliParts(iso?: string): JalaliParts {
+  if (!iso) return EMPTY_PARTS;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return EMPTY_PARTS;
+  const { jy, jm, jd } = toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  return {
+    jy: String(jy),
+    jm: String(jm),
+    jd: String(jd),
+    hh: String(d.getHours()),
+    mm: String(d.getMinutes()),
+    ss: String(d.getSeconds()),
+  };
+}
+
+/**
+ * Jalali parts → ISO/UTC string, or undefined if the date is incomplete/invalid. The wall-clock
+ * time is interpreted in the browser's local timezone (Tehran for the target users), then
+ * converted to UTC by toISOString(). `withTime` false ignores the time parts (midnight local).
+ */
+export function jalaliPartsToIso(p: JalaliParts, withTime: boolean): string | undefined {
+  const jy = Number(p.jy);
+  const jm = Number(p.jm);
+  const jd = Number(p.jd);
+  if (!jy || !jm || !jd || !isValidJalaaliDate(jy, jm, jd)) return undefined;
+  const { gy, gm, gd } = toGregorian(jy, jm, jd);
+  const hh = withTime ? clamp(Number(p.hh) || 0, 0, 23) : 0;
+  const mm = withTime ? clamp(Number(p.mm) || 0, 0, 59) : 0;
+  const ss = withTime ? clamp(Number(p.ss) || 0, 0, 59) : 0;
+  const d = new Date(gy, gm - 1, gd, hh, mm, ss);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString();
+}
 
 const jalaliDayFmt = new Intl.DateTimeFormat("en-US-u-ca-persian", { day: "numeric" });
 const jalaliDateFmt = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {

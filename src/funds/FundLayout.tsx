@@ -14,6 +14,7 @@ export default function FundLayout() {
   const items = [
     { key: "overview", label: <Link to={`/funds/${fundId}`}>{strings.fundNav.overview}</Link> },
     { key: "members", label: <Link to={`/funds/${fundId}/members`}>{strings.fundNav.members}</Link> },
+    { key: "bank", label: <Link to={`/funds/${fundId}/bank`}>{strings.fundNav.bank}</Link> },
   ];
 
   return (

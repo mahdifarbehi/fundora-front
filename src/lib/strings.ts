@@ -6,6 +6,23 @@ export const strings = {
   appName: "فاندورا",
   tagline: "پنل مدیریت صندوق خانوادگی",
 
+  jalaliMonths: [
+    "فروردین",
+    "اردیبهشت",
+    "خرداد",
+    "تیر",
+    "مرداد",
+    "شهریور",
+    "مهر",
+    "آبان",
+    "آذر",
+    "دی",
+    "بهمن",
+    "اسفند",
+  ],
+
+  dateInput: { day: "روز", month: "ماه", year: "سال", hour: "ساعت", minute: "دقیقه", second: "ثانیه" },
+
   auth: {
     loginTitle: "ورود به فاندورا",
     registerTitle: "ساخت حساب کاربری",
@@ -65,6 +82,48 @@ export const strings = {
   fundNav: {
     overview: "مشخصات",
     members: "اعضا",
+    bank: "بانک",
+  },
+
+  bank: {
+    title: "تراکنش‌های بانکی",
+    record: "ثبت واریز",
+    recordTitle: "ثبت واریز بانکی",
+    amountLabel: "مبلغ (تومان)",
+    datetimeLabel: "تاریخ و زمان واریز",
+    fromCardLabel: "شماره کارت مبدأ",
+    trackingLabel: "کد پیگیری (اختیاری)",
+    noteLabel: "توضیح (اختیاری)",
+    submit: "ثبت",
+    cancel: "انصراف",
+    matched: "به عضو تطبیق داده شد و کیف پول شارژ شد.",
+    unmatched: "کارت با هیچ عضوی تطبیق نشد؛ در صف تطبیق دستی قرار گرفت.",
+    empty: "هنوز تراکنشی ثبت نشده است.",
+    colAmount: "مبلغ",
+    colDate: "تاریخ واریز",
+    colCard: "کارت مبدأ",
+    colTracking: "کد پیگیری",
+    colStatus: "وضعیت",
+    statusCharged: "تطبیق و شارژ شد",
+    statusUnmatched: "بدون تطبیق",
+  },
+
+  wallet: {
+    title: "کیف پول",
+    balance: "موجودی",
+    empty: "تراکنشی ثبت نشده است.",
+    colAmount: "مبلغ",
+    colType: "نوع",
+    colDate: "تاریخ",
+    back: "بازگشت به اعضا",
+    direction: { CREDIT: "بستانکار", DEBIT: "بدهکار" } as Record<string, string>,
+    txnType: {
+      DEPOSIT: "واریز بانکی",
+      CONTRIBUTION_PAYMENT: "پرداخت سهم",
+      INSTALLMENT_PAYMENT: "پرداخت قسط",
+      ADJUSTMENT: "اصلاح دستی",
+      PAYMENT_REVERSAL: "برگشت پرداخت",
+    } as Record<string, string>,
   },
 
   members: {
@@ -98,6 +157,8 @@ export const strings = {
     countMin: "مقدار باید حداقل ۱ باشد.",
     contributionDayRange: "روز واریز باید بین ۱ تا ۲۸ باشد.",
     shareCountMin: "تعداد سهم باید حداقل ۱ باشد.",
+    fromCardRequired: "شماره کارت مبدأ الزامی است.",
+    datetimeRequired: "تاریخ و زمان واریز الزامی است.",
   },
 
   // Per-field API error codes → Persian (FRONTEND_API §2.2 / §4.1). Shown under the field.
