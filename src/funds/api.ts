@@ -20,6 +20,12 @@ export async function listFunds(params: PageParams = {}): Promise<Paginated<Fund
   return data;
 }
 
+/** GET /api/funds/{id}/ — one fund; `404 NOT_FOUND` if it isn't yours (FRONTEND_API §5.3). */
+export async function getFund(id: string | number): Promise<Fund> {
+  const { data } = await api.get<Fund>(`/funds/${id}/`);
+  return data;
+}
+
 /** POST /api/funds/ — create a fund (FRONTEND_API §5.2). */
 export async function createFund(input: CreateFundInput): Promise<Fund> {
   const { data } = await api.post<Fund>("/funds/", input);

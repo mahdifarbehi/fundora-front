@@ -222,13 +222,20 @@ switcher changes funds by navigating. This is the frame all member/wallet/loan s
 **Implements:** ADR 0006 (active fund in the URL, no global "current fund").
 
 **Build:**
-- [ ] Nested routes under `/funds/:fundId/...` (start with an overview screen).
-- [ ] Clicking a fund in the Phase 3 list navigates to `/funds/:fundId`.
-- [ ] A small hook that reads `fundId` from the route param — the single source of truth for
-      "which fund" (every scoped query key and API call derives from it).
-- [ ] Header fund switcher (Ant Design `Select`/dropdown of your funds) that navigates to the
-      same screen under a different `:fundId`.
-- [ ] A fund-overview screen fetching `GET /api/funds/{id}/` and showing its settings.
+- [x] Nested route `/funds/:fundId` → `FundOverviewPage`, under the app shell (`App.tsx`).
+      More sections mount under here in later phases.
+- [x] Clicking a fund row in `FundsPage` navigates to `/funds/:fundId` (`onRow` click).
+- [x] `src/funds/fundScope.ts`: `useFundId()` (asserts, for scoped pages) and
+      `useCurrentFundScope()` (fundId + sub-path, for the header) — the URL is the single
+      source of truth (ADR 0006).
+- [x] Header `FundSwitcher` (Ant `Select` of your funds) navigates to the same sub-path
+      under a different `:fundId`.
+- [x] `FundOverviewPage`: `useFund(fundId)` → `GET /api/funds/{id}/`, settings in a
+      `Descriptions` (Toman amounts, contribution day + Jalali landing days, created date
+      in Jalali), clean `404` not-found state.
+- [x] Hardened `normalizeError`: falls back to a status-derived code (404→NOT_FOUND, …)
+      when the body has no `code` — the live 404 returns `{"detail":…}`, not the documented
+      `{"code":"NOT_FOUND"}`.
 
 **How to verify:**
 - Click a fund → URL becomes `/funds/<id>` and shows that fund's settings.
@@ -238,9 +245,11 @@ switcher changes funds by navigating. This is the frame all member/wallet/loan s
   isolation (FRONTEND_API §2.3).
 
 **Done when:**
-- [ ] The fund id comes only from the URL; there's no global current-fund state.
-- [ ] The switcher and deep-links both work; back/forward behave correctly.
-- [ ] A not-yours fund id shows a clean "not found," not an error screen.
+- [x] Code complete; `tsc -b` clean, modules transform; backend contract verified
+      (owned fund → `200`; not-yours → `404`).
+- [ ] **(your click-test)** Fund id comes only from the URL; switcher + deep-links work.
+- [ ] **(your click-test)** Back/forward behave correctly.
+- [ ] **(your click-test)** A not-yours fund id shows a clean "not found," not a crash.
 
 ---
 

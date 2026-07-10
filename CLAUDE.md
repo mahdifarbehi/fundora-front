@@ -26,9 +26,9 @@ is a separate, already-built Django/DRF API.
   updates. Build this before any breadth.
 - **The phased build plan is in `docs/ROADMAP.md`** — numbered, testable phases (0–6 are
   the walking skeleton, 7+ fan out). Follow it top-to-bottom and tick the checkboxes.
-  Phases 0–2 done (scaffold/RTL, auth+network layer, routing + auth guard + app shell +
-  login/register). **Phase 3 (funds list + create) code-complete, pending browser
-  click-test; Phase 4 (fund scope in URL) is next.**
+  Phases 0–3 done (scaffold/RTL, auth+network layer, routing + shell + login/register,
+  funds list + create). **Phase 4 (fund scope in URL — `/funds/:fundId`, header switcher,
+  fund overview) code-complete, pending browser click-test; Phase 5 (members) is next.**
 
 ## Locked decisions (details in docs/adr/)
 - **Stack:** React + Vite SPA + TypeScript. (0001)

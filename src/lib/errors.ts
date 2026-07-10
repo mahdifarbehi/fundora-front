@@ -43,6 +43,20 @@ export class ApiError extends Error {
   }
 }
 
+/** Derive a stable code from the HTTP status when the body carries no `code`. */
+function statusFallbackCode(status: number | undefined): ApiErrorCode {
+  switch (status) {
+    case 401:
+      return "NOT_AUTHENTICATED";
+    case 403:
+      return "PERMISSION_DENIED";
+    case 404:
+      return "NOT_FOUND";
+    default:
+      return "UNKNOWN";
+  }
+}
+
 /** Turn any caught value into an ApiError by reading the backend's `code` body. */
 export function normalizeError(err: unknown): ApiError {
   if (err instanceof ApiError) return err;
@@ -60,8 +74,11 @@ export function normalizeError(err: unknown): ApiError {
       code?: string;
       fields?: FieldErrors;
     };
+    // Most errors carry a machine `code`, but some DRF defaults (e.g. a get_object_or_404
+    // returns `{"detail": ...}` with no code) don't — fall back to the HTTP status so
+    // callers can still branch on NOT_FOUND / PERMISSION_DENIED / NOT_AUTHENTICATED.
     return new ApiError({
-      code: code ?? "UNKNOWN",
+      code: code ?? statusFallbackCode(status),
       status,
       fields: fields,
       context,

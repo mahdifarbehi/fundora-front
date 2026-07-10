@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button, Flex, Layout, Space, Typography } from "antd";
 import { LogoutOutlined } from "@ant-design/icons";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import FundSwitcher from "../funds/FundSwitcher";
 import { strings } from "../lib/strings";
 
 const { Header, Content } = Layout;
@@ -29,9 +30,14 @@ export default function AppShell() {
     <Layout style={{ minHeight: "100vh" }}>
       <Header>
         <Flex align="center" justify="space-between" style={{ height: "100%" }}>
-          <Text strong style={{ color: "#fff", fontSize: 18 }}>
-            {strings.appName}
-          </Text>
+          <Space size="middle">
+            <Link to="/">
+              <Text strong style={{ color: "#fff", fontSize: 18 }}>
+                {strings.appName}
+              </Text>
+            </Link>
+            <FundSwitcher />
+          </Space>
           <Space size="middle">
             {user && <Text style={{ color: "rgba(255,255,255,0.85)" }}>{user.full_name || user.phone}</Text>}
             <Button

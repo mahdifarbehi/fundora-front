@@ -51,6 +51,15 @@ export const strings = {
     submit: "ایجاد",
     cancel: "انصراف",
     createSuccess: "صندوق با موفقیت ایجاد شد.",
+    switcherPlaceholder: "انتخاب صندوق",
+    open: "باز کردن",
+  },
+
+  overview: {
+    title: "مشخصات صندوق",
+    createdAt: "تاریخ ایجاد",
+    notFound: "صندوق یافت نشد یا به شما تعلق ندارد.",
+    back: "بازگشت به فهرست صندوق‌ها",
   },
 
   // Field-level validation messages (used by Zod schemas).

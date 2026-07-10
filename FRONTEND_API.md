@@ -102,6 +102,16 @@ Uniform `code`-only bodies:
 > `404 NOT_FOUND` (they're filtered out of your queryset), not `403`. Treat `404` on a
 > resource you expected to exist as "not yours or gone."
 
+> **⚠️ Observed drift (verified against the live backend, 2026-07):** some `404`s do **not**
+> use the `{"code": "NOT_FOUND"}` shape above — a fund-detail lookup that isn't yours returns
+> DRF's default `{"detail": "No Fund matches the given query."}` (no `code` field). This
+> happens wherever the backend uses `get_object_or_404`/`NotFound` instead of the custom
+> code-emitting handler. **Do not rely on `code` being present on a `404`; branch on the HTTP
+> status.** The frontend handles this by deriving a fallback code from the status when the
+> body has no `code` (see `src/lib/errors.ts`). Same caveat may apply to other DRF-default
+> `401`/`403`/`404` responses. (Backend TODO: emit `{"code": …}` consistently, or accept
+> that clients key off status.)
+
 The `401` code for an invalid token comes straight from SimpleJWT, upper-cased
 (`token_not_valid` → `TOKEN_NOT_VALID`).
 

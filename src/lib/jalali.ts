@@ -7,10 +7,20 @@
 // We surface that set (and a recommendation) so the user understands what they're picking.
 
 const jalaliDayFmt = new Intl.DateTimeFormat("en-US-u-ca-persian", { day: "numeric" });
+const jalaliDateFmt = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
 
 /** Jalali day-of-month for a given Gregorian date. */
 export function jalaliDayOfMonth(date: Date): number {
   return Number(jalaliDayFmt.format(date));
+}
+
+/** Format an ISO/Date value as a full Jalali date in Persian (e.g. «۱۹ تیر ۱۴۰۵»). Display-only. */
+export function formatJalaliDate(input: string | Date): string {
+  return jalaliDateFmt.format(new Date(input));
 }
 
 /**
