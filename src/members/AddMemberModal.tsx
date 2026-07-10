@@ -3,7 +3,7 @@ import { Alert, Form, Input, Modal, Select, message } from "antd";
 import { z } from "zod";
 import { useAddMember } from "./hooks";
 import { applyZodErrors, applyApiFieldErrors } from "../lib/zodForm";
-import { normalizeDigits, toEnglishDigits } from "../lib/digits";
+import { normalizeDigits, toEnglishDigits, toPersianDigits } from "../lib/digits";
 import NumberInput from "../components/NumberInput";
 import { ApiError } from "../lib/errors";
 import { errorMessage, strings } from "../lib/strings";
@@ -74,7 +74,11 @@ export default function AddMemberModal({
             }
             // CARD_ALREADY_REGISTERED carries the conflicting `number` — surface on the cards field.
             if (err.code === "CARD_ALREADY_REGISTERED") {
-              form.setFields([{ name: "cards", errors: [errorMessage(err.code)] }]);
+              const number = typeof err.context.number === "string" ? err.context.number : "";
+              const msg = number
+                ? `${errorMessage(err.code)} (${toPersianDigits(number)})`
+                : errorMessage(err.code);
+              form.setFields([{ name: "cards", errors: [msg] }]);
               return;
             }
             setFormError(errorMessage(err.code));
@@ -122,7 +126,7 @@ export default function AddMemberModal({
           <NumberInput />
         </Form.Item>
 
-        <Form.Item name="cards" label={strings.members.cardsLabel} help={strings.members.cardsHelp}>
+        <Form.Item name="cards" label={strings.members.cardsLabel} extra={strings.members.cardsHelp}>
           <Select mode="tags" tokenSeparators={[",", " "]} open={false} suffixIcon={null} />
         </Form.Item>
       </Form>
