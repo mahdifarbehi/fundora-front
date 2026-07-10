@@ -62,6 +62,28 @@ export const strings = {
     back: "بازگشت به فهرست صندوق‌ها",
   },
 
+  fundNav: {
+    overview: "مشخصات",
+    members: "اعضا",
+  },
+
+  members: {
+    title: "اعضا",
+    add: "افزودن عضو",
+    addTitle: "افزودن عضو جدید",
+    empty: "هنوز عضوی اضافه نشده است.",
+    colUser: "کاربر",
+    colShareCount: "تعداد سهم",
+    colCreatedAt: "تاریخ عضویت",
+    userLabel: (idFa: string) => `کاربر #${idFa}`,
+    shareCountLabel: "تعداد سهم",
+    cardsLabel: "شماره کارت‌ها (اختیاری)",
+    cardsHelp: "برای تطبیق خودکار واریزی‌های بانکی. هر شماره را وارد کنید و Enter بزنید.",
+    submit: "افزودن",
+    cancel: "انصراف",
+    addSuccess: "عضو با موفقیت اضافه شد.",
+  },
+
   // Field-level validation messages (used by Zod schemas).
   validation: {
     phoneRequired: "شماره موبایل الزامی است.",
@@ -74,6 +96,7 @@ export const strings = {
     integerRequired: "یک عدد صحیح وارد کنید.",
     countMin: "مقدار باید حداقل ۱ باشد.",
     contributionDayRange: "روز واریز باید بین ۱ تا ۲۸ باشد.",
+    shareCountMin: "تعداد سهم باید حداقل ۱ باشد.",
   },
 
   // Per-field API error codes → Persian (FRONTEND_API §2.2 / §4.1). Shown under the field.
@@ -101,6 +124,7 @@ export const strings = {
     TOKEN_NOT_VALID: "نشست شما منقضی شده است. دوباره وارد شوید.",
     PERMISSION_DENIED: "به این بخش دسترسی ندارید.",
     NOT_FOUND: "موردی یافت نشد.",
+    MEMBER_ALREADY_EXISTS: "این شماره از قبل عضو این صندوق است.",
     NETWORK_ERROR: "خطای ارتباط با سرور. اتصال را بررسی کنید.",
     UNKNOWN: "خطای ناشناخته رخ داد.",
   } as Record<string, string>,

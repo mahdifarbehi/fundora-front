@@ -261,12 +261,15 @@ create and a domain error code.
 **Implements:** FRONTEND_API §6.1–6.2.
 
 **Build:**
-- [ ] `useMembers(fundId)` → `GET /api/funds/{fundId}/members/` (paginated); render in a table.
-- [ ] "Add member" form + Zod: `phone` (required), `share_count` (≥1), optional `full_name`,
-      optional `cards`. `useAddMember()` → `POST /api/funds/{fundId}/members/`; invalidate the
-      members query on success.
-- [ ] Handle `400 MEMBER_ALREADY_EXISTS` (show a friendly "already a member" message keyed off
-      the code) and `VALIDATION_ERROR` field codes.
+- [x] `useMembers(fundId)` → `GET /api/funds/{fundId}/members/` (paginated); `MembersPage`
+      table under `/funds/:fundId/members` with loading + empty states.
+- [x] `AddMemberModal` + Zod: `phone` (regex, digit-normalized), `share_count` (≥1, Persian
+      `NumberInput`), optional `full_name`, optional `cards` (tag input, normalized to ASCII).
+      `useAddMember()` → `POST /api/funds/{fundId}/members/`; invalidates the members query.
+- [x] Handles `400 MEMBER_ALREADY_EXISTS` (Persian message on the phone field) and
+      `VALIDATION_ERROR` field codes (`share_count: ["min_value"]` inline).
+- [x] `FundLayout` sub-nav (مشخصات / اعضا) hosts the fund sections; `AddMemberInput` is
+      hand-written because the generated schema wrongly reuses the read-only `Member` model.
 
 **How to verify:**
 - Add a member → appears in the list without manual refresh.
@@ -275,8 +278,14 @@ create and a domain error code.
 - Submit `share_count = 0` → blocked with `share_count: ["min_value"]`.
 
 **Done when:**
-- [ ] Members list loads for the active fund.
-- [ ] Adding a member updates the list; duplicate and validation errors are handled by `code`.
+- [x] Code complete; `tsc -b` clean, modules transform; backend contract verified (add →
+      `201`; duplicate → `MEMBER_ALREADY_EXISTS`; `share_count=0` → `VALIDATION_ERROR`).
+- [ ] **(your click-test)** Members list loads for the active fund; add updates it live.
+- [ ] **(your click-test)** Duplicate + validation errors render in Persian.
+
+> **API limitation found:** the members list returns only the `user` **id** (no name/phone) —
+> so the table shows «کاربر #N». A usable roster needs the backend to include the person's
+> name/phone on the `Member` serializer. Flagged; see the note after this phase.
 
 ---
 

@@ -4,7 +4,9 @@ import RegisterPage from "../auth/RegisterPage";
 import RequireAuth from "./RequireAuth";
 import AppShell from "./AppShell";
 import FundsPage from "../funds/FundsPage";
+import FundLayout from "../funds/FundLayout";
 import FundOverviewPage from "../funds/FundOverviewPage";
+import MembersPage from "../members/MembersPage";
 
 // Route map (ADR 0006): /login is public; everything else is protected and rendered inside
 // the app shell. Fund-scoped routes (/funds/:fundId/...) get added under here in later phases.
@@ -17,9 +19,12 @@ export default function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
           <Route path="/" element={<FundsPage />} />
-          {/* Fund-scoped routes carry the fund id in the URL (ADR 0006). More sections
-              (members, loans, …) mount under here in later phases. */}
-          <Route path="/funds/:fundId" element={<FundOverviewPage />} />
+          {/* Fund-scoped routes carry the fund id in the URL (ADR 0006). Sections
+              (overview, members, loans, …) are children of the fund layout. */}
+          <Route path="/funds/:fundId" element={<FundLayout />}>
+            <Route index element={<FundOverviewPage />} />
+            <Route path="members" element={<MembersPage />} />
+          </Route>
         </Route>
       </Route>
 
