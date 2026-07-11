@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Button, Descriptions, Flex, Table, Tag, Typography } from "antd";
+import { Button, Descriptions, Flex, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Link, useParams } from "react-router-dom";
 import { useFundId } from "../funds/fundScope";
@@ -7,11 +7,11 @@ import { useLoan } from "./hooks";
 import type { Installment } from "./api";
 import { useMember } from "../members/hooks";
 import ReverseDueModal from "./ReverseDueModal";
+import ApiErrorAlert from "../components/ApiErrorAlert";
 import { formatNumber, formatToman } from "../lib/money";
 import { toPersianDigits } from "../lib/digits";
 import { formatJalaliDate } from "../lib/jalali";
-import { ApiError } from "../lib/errors";
-import { errorMessage, strings } from "../lib/strings";
+import { strings } from "../lib/strings";
 
 const { Title } = Typography;
 
@@ -84,13 +84,7 @@ export default function LoanDetailPage() {
         </Link>
       </Flex>
 
-      {isError && (
-        <Alert
-          type="error"
-          showIcon
-          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
-        />
-      )}
+      {isError && <ApiErrorAlert error={error} />}
 
       {loan && (
         <Descriptions bordered column={1} size="small">

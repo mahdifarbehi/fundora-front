@@ -37,6 +37,15 @@ export const strings = {
     welcome: (name: string) => `خوش آمدید، ${name}`,
     toRegister: "حساب ندارید؟ ثبت‌نام کنید",
     toLogin: "حساب دارید؟ وارد شوید",
+    sessionExpired: "نشست شما منقضی شد. لطفاً دوباره وارد شوید.",
+  },
+
+  // Global crash fallback (React error boundary — non-API render errors).
+  errorBoundary: {
+    title: "خطایی رخ داد",
+    body: "مشکلی پیش‌بینی‌نشده پیش آمد. صفحه را دوباره بارگذاری کنید.",
+    reload: "بارگذاری مجدد",
+    home: "بازگشت به خانه",
   },
 
   funds: {
@@ -309,6 +318,7 @@ export const strings = {
   // Map of API error `code` → human Persian message. Extended in later phases (the full
   // error-mapping table is formalized in Phase 7).
   errors: {
+    VALIDATION_ERROR: "برخی مقادیر واردشده نامعتبر است.",
     NO_ACTIVE_ACCOUNT: "شماره موبایل یا گذرواژه اشتباه است.",
     NOT_AUTHENTICATED: "برای ادامه باید وارد شوید.",
     TOKEN_NOT_VALID: "نشست شما منقضی شده است. دوباره وارد شوید.",

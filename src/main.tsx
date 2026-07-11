@@ -10,6 +10,7 @@ import "@fontsource/vazirmatn/400.css";
 import "@fontsource/vazirmatn/500.css";
 import "@fontsource/vazirmatn/700.css";
 import App from "./app/App.tsx";
+import ErrorBoundary from "./app/ErrorBoundary.tsx";
 import { AuthProvider } from "./auth/AuthContext.tsx";
 import { queryClient } from "./lib/queryClient.ts";
 
@@ -26,13 +27,18 @@ createRoot(document.getElementById("root")!).render(
       {/* Ant's App provides context-aware message/modal/notification (RTL + theme) via
           App.useApp(); it must sit inside ConfigProvider and above the routes. */}
       <AntApp>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <App />
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
+        {/* Top-level crash guard: catches render errors anywhere below and shows a Persian
+            fallback instead of a blank screen (ErrorBoundary sits under ConfigProvider/AntApp
+            so the fallback still gets RTL + theme). */}
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </ErrorBoundary>
       </AntApp>
     </ConfigProvider>
   </StrictMode>,

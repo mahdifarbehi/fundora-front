@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Button, Empty, Flex, Table, Typography } from "antd";
+import { Button, Empty, Flex, Table, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useNavigate } from "react-router-dom";
@@ -7,11 +7,11 @@ import { useFundId } from "../funds/fundScope";
 import { useMembers } from "./hooks";
 import type { Member } from "./api";
 import AddMemberModal from "./AddMemberModal";
+import ApiErrorAlert from "../components/ApiErrorAlert";
 import { formatNumber } from "../lib/money";
 import { toPersianDigits } from "../lib/digits";
 import { formatJalaliDate } from "../lib/jalali";
-import { ApiError } from "../lib/errors";
-import { errorMessage, strings } from "../lib/strings";
+import { strings } from "../lib/strings";
 
 const { Title } = Typography;
 
@@ -59,13 +59,7 @@ export default function MembersPage() {
         </Button>
       </Flex>
 
-      {isError && (
-        <Alert
-          type="error"
-          showIcon
-          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
-        />
-      )}
+      {isError && <ApiErrorAlert error={error} />}
 
       <Table<Member>
         rowKey="id"

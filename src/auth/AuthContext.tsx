@@ -13,6 +13,9 @@ type AuthState =
 interface AuthContextValue {
   status: AuthState["status"];
   user: User | null;
+  /** True when the last drop to `anon` was a mid-session expiry (not an explicit logout / cold
+   *  start) — the login screen reads this to explain why the user was bounced. */
+  sessionExpired: boolean;
   signIn: (phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -21,6 +24,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: "loading", user: null });
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // On app load, try to mint an access token from the refresh cookie (ADR 0002). If it
   // works we fetch the user; otherwise the user must log in.
@@ -45,10 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // When a silent refresh finally fails mid-session, the client calls this — flip to anon
-  // so the route guard bounces the user to /login.
+  // When a silent refresh finally fails mid-session, the client calls this — flip to anon and
+  // flag the expiry so the route guard bounces the user to /login with an explanation.
   useEffect(() => {
-    setOnSessionExpired(() => setState({ status: "anon", user: null }));
+    setOnSessionExpired(() => {
+      setSessionExpired(true);
+      setState({ status: "anon", user: null });
+    });
     return () => setOnSessionExpired(null);
   }, []);
 
@@ -56,17 +63,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       status: state.status,
       user: state.user,
+      sessionExpired,
       signIn: async (phone, password) => {
         await login(phone, password);
         const user = await getMe();
+        setSessionExpired(false);
         setState({ status: "authed", user });
       },
       signOut: async () => {
         await logout();
+        setSessionExpired(false);
         setState({ status: "anon", user: null });
       },
     }),
-    [state],
+    [state, sessionExpired],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

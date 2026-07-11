@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, App, Button, Empty, Flex, Space, Statistic, Table, Typography } from "antd";
+import { App, Button, Empty, Flex, Space, Statistic, Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Link, useParams } from "react-router-dom";
 import { useFundId } from "../funds/fundScope";
@@ -7,6 +7,7 @@ import { useMember } from "./hooks";
 import { useSettleWallet, useWallet } from "../wallets/hooks";
 import type { WalletTransaction } from "../wallets/api";
 import AdjustmentModal from "../wallets/AdjustmentModal";
+import ApiErrorAlert from "../components/ApiErrorAlert";
 import { formatNumber, formatToman } from "../lib/money";
 import { toPersianDigits } from "../lib/digits";
 import { formatJalaliDate } from "../lib/jalali";
@@ -117,13 +118,7 @@ export default function MemberWalletPage() {
         </Space>
       </Flex>
 
-      {isError && (
-        <Alert
-          type="error"
-          showIcon
-          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
-        />
-      )}
+      {isError && <ApiErrorAlert error={error} />}
 
       <Statistic
         title={strings.wallet.balance}

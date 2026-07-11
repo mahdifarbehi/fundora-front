@@ -357,14 +357,24 @@ Introduces the first date **input** — pull in the Jalali layer here (see note 
 **Goal:** make the shared UX solid before adding breadth, so every later screen inherits it.
 
 **Build:**
-- [ ] A global error boundary + a consistent way to surface API `code` errors as Persian
-      messages (one mapping table, keyed by code — FRONTEND_API §9/§11).
-- [ ] Standard loading (skeletons/spinners) and empty states for lists.
-- [ ] Session-expiry handling: when refresh finally fails, route to login with a clear message.
+- [x] Global crash boundary (`app/ErrorBoundary.tsx`, wired in `main.tsx`) + one consistent way to
+      surface API `code` errors: the central `strings.errors` table via the shared
+      `components/ApiErrorAlert.tsx` (adopted across funds/members/bank/loans/wallet lists). Added a
+      generic `VALIDATION_ERROR` message.
+- [x] Standard loading + empty states for lists — already present on every list (Table `loading`
+      + `Empty` emptyText); left as-is, now paired with the shared error alert.
+- [x] Session-expiry handling: refresh failure → `notifySessionExpired` → `AuthContext.sessionExpired`
+      flag → guard bounces to `/login` with a warning banner (only on real expiry, not cold start).
 
 **Done when:**
-- [ ] Every list has loading + empty states; API errors render as readable Persian text.
-- [ ] A fully-expired session lands the user on login without a dead screen.
+- [x] Every list has loading + empty states; API errors render as readable Persian text.
+      *(code-complete; browser test pending.)*
+- [ ] A fully-expired session lands the user on login without a dead screen. *(code-complete; the
+      browser repro needs the access token to actually expire — pending.)*
+
+> **Not done — responsiveness/mobile (deferred 2026-07-11, user's call).** The app is desktop-first:
+> no breakpoints, tables have no horizontal scroll, modals are fixed 520px. Tier-1 fixes identified
+> (table `scroll={{x:'max-content'}}`, responsive modal width, card `maxWidth`) — revisit later.
 
 ---
 

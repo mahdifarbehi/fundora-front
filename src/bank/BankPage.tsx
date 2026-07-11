@@ -13,6 +13,7 @@ import {
 } from "./hooks";
 import RecordTransferModal from "./RecordTransferModal";
 import AssignMemberModal from "./AssignMemberModal";
+import ApiErrorAlert from "../components/ApiErrorAlert";
 import type { BankTransaction } from "./api";
 import { formatToman } from "../lib/money";
 import { toPersianDigits } from "../lib/digits";
@@ -73,13 +74,7 @@ function AllTransactions({ fundId, membersById }: { fundId: string; membersById:
   const { data, isLoading, isError, error } = useBankTransactions(fundId);
   return (
     <Flex vertical gap="middle">
-      {isError && (
-        <Alert
-          type="error"
-          showIcon
-          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
-        />
-      )}
+      {isError && <ApiErrorAlert error={error} />}
       <Table<BankTransaction>
         rowKey="id"
         columns={buildAllColumns(membersById)}
@@ -143,13 +138,7 @@ function UnmatchedQueue({ fundId, membersById }: { fundId: string; membersById: 
       <Paragraph type="secondary" style={{ margin: 0 }}>
         {strings.bank.unmatchedHint}
       </Paragraph>
-      {isError && (
-        <Alert
-          type="error"
-          showIcon
-          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
-        />
-      )}
+      {isError && <ApiErrorAlert error={error} />}
       <Table<BankTransaction>
         rowKey="id"
         columns={columns}

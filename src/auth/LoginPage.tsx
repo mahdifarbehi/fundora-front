@@ -29,7 +29,7 @@ interface FromState {
 
 export default function LoginPage() {
   const [form] = Form.useForm<LoginValues>();
-  const { status, signIn } = useAuth();
+  const { status, signIn, sessionExpired } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +68,17 @@ export default function LoginPage() {
             {strings.auth.loginTitle}
           </Title>
         </Flex>
+
+        {/* Explain an involuntary bounce to login (mid-session expiry) — hidden once the user
+            starts over and a submit error takes precedence. */}
+        {sessionExpired && !formError && (
+          <Alert
+            type="warning"
+            message={strings.auth.sessionExpired}
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
         {formError && (
           <Alert type="error" message={formError} showIcon style={{ marginBottom: 16 }} />

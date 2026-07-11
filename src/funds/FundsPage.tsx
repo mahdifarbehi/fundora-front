@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { Alert, Button, Empty, Flex, Space, Table, Tooltip, Typography } from "antd";
+import { Button, Empty, Flex, Space, Table, Tooltip, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useNavigate } from "react-router-dom";
 import { useFunds } from "./hooks";
 import type { Fund } from "./api";
 import CreateFundModal from "./CreateFundModal";
+import ApiErrorAlert from "../components/ApiErrorAlert";
 import { formatNumber, formatToman } from "../lib/money";
 import { jalaliDayPossibilities } from "../lib/jalali";
-import { ApiError } from "../lib/errors";
-import { errorMessage, strings } from "../lib/strings";
+import { strings } from "../lib/strings";
 
 const { Title, Text } = Typography;
 
@@ -69,13 +69,7 @@ export default function FundsPage() {
         </Button>
       </Flex>
 
-      {isError && (
-        <Alert
-          type="error"
-          showIcon
-          message={errorMessage(error instanceof ApiError ? error.code : "UNKNOWN")}
-        />
-      )}
+      {isError && <ApiErrorAlert error={error} />}
 
       <Table<Fund>
         rowKey="id"
