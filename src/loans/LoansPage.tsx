@@ -88,6 +88,7 @@ export default function LoansPage() {
         dataSource={data?.results ?? []}
         loading={isLoading}
         pagination={false}
+        scroll={{ x: "max-content" }}
         locale={{ emptyText: <Empty description={strings.loans.empty} /> }}
         onRow={(loan) => ({
           onClick: () => navigate(`/funds/${fundId}/loans/${loan.id}`),

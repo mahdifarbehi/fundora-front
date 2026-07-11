@@ -52,7 +52,9 @@ export default function AppShell() {
           </Space>
         </Flex>
       </Header>
-      <Content style={{ padding: 24 }}>
+      {/* No padding here: fund pages render a full-height sider flush to the edge (FundLayout),
+          and the pad-less pages (FundsPage) add their own padded, width-capped container. */}
+      <Content style={{ padding: 0 }}>
         <Outlet />
       </Content>
     </Layout>

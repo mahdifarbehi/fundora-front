@@ -139,6 +139,7 @@ export default function MemberWalletPage() {
           showSizeChanger: false,
           hideOnSinglePage: true,
         }}
+        scroll={{ x: "max-content" }}
         locale={{ emptyText: <Empty description={strings.wallet.empty} /> }}
       />
 

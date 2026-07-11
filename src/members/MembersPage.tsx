@@ -67,6 +67,7 @@ export default function MembersPage() {
         dataSource={data?.results ?? []}
         loading={isLoading}
         pagination={false}
+        scroll={{ x: "max-content" }}
         locale={{ emptyText: <Empty description={strings.members.empty} /> }}
         onRow={(m) => ({
           onClick: () => navigate(`/funds/${fundId}/members/${m.id}/wallet`),

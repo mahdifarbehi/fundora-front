@@ -121,6 +121,7 @@ export default function LoanDetailPage() {
         dataSource={loan?.installments ?? []}
         loading={isLoading}
         pagination={false}
+        scroll={{ x: "max-content" }}
       />
 
       <ReverseDueModal

@@ -59,7 +59,7 @@ export default function FundsPage() {
   const navigate = useNavigate();
 
   return (
-    <Flex vertical gap="middle">
+    <Flex vertical gap="middle" style={{ padding: 24, maxWidth: 1160, margin: "0 auto" }}>
       <Flex align="center" justify="space-between">
         <Title level={3} style={{ margin: 0 }}>
           {strings.funds.title}
@@ -77,6 +77,7 @@ export default function FundsPage() {
         dataSource={data?.results ?? []}
         loading={isLoading}
         pagination={false}
+        scroll={{ x: "max-content" }}
         locale={{ emptyText: <Empty description={strings.funds.empty} /> }}
         onRow={(fund) => ({
           onClick: () => navigate(`/funds/${fund.id}`),

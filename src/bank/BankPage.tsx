@@ -81,6 +81,7 @@ function AllTransactions({ fundId, membersById }: { fundId: string; membersById:
         dataSource={data?.results ?? []}
         loading={isLoading}
         pagination={false}
+        scroll={{ x: "max-content" }}
         locale={{ emptyText: <Empty description={strings.bank.empty} /> }}
       />
     </Flex>
@@ -145,6 +146,7 @@ function UnmatchedQueue({ fundId, membersById }: { fundId: string; membersById: 
         dataSource={data?.results ?? []}
         loading={isLoading}
         pagination={false}
+        scroll={{ x: "max-content" }}
         locale={{ emptyText: <Empty description={strings.bank.unmatchedEmpty} /> }}
       />
       <AssignMemberModal
