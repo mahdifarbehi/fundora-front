@@ -1,10 +1,12 @@
-import { Alert, Button, Empty, Flex, Statistic, Table, Typography } from "antd";
+import { useState } from "react";
+import { Alert, App, Button, Empty, Flex, Space, Statistic, Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Link, useParams } from "react-router-dom";
 import { useFundId } from "../funds/fundScope";
 import { useMember } from "./hooks";
-import { useWallet } from "../wallets/hooks";
+import { useSettleWallet, useWallet } from "../wallets/hooks";
 import type { WalletTransaction } from "../wallets/api";
+import AdjustmentModal from "../wallets/AdjustmentModal";
 import { formatNumber, formatToman } from "../lib/money";
 import { toPersianDigits } from "../lib/digits";
 import { formatJalaliDate } from "../lib/jalali";
@@ -12,6 +14,9 @@ import { ApiError } from "../lib/errors";
 import { errorMessage, strings } from "../lib/strings";
 
 const { Title, Text } = Typography;
+
+// The ledger is server-paginated (limit/offset); one page at a time (§6.5).
+const PAGE_SIZE = 10;
 
 const columns: ColumnsType<WalletTransaction> = [
   {
@@ -34,6 +39,12 @@ const columns: ColumnsType<WalletTransaction> = [
     render: (t: string) => strings.wallet.txnType[t] ?? t,
   },
   {
+    title: strings.wallet.colDescription,
+    dataIndex: "description",
+    key: "description",
+    render: (d: string) => d || "—",
+  },
+  {
     title: strings.wallet.colDate,
     dataIndex: "created_at",
     key: "created_at",
@@ -45,11 +56,45 @@ export default function MemberWalletPage() {
   const fundId = useFundId();
   const { memberId } = useParams<{ memberId: string }>();
   const member = useMember(fundId, memberId!);
-  const { data, isLoading, isError, error } = useWallet(memberId!);
+  const { modal, message } = App.useApp();
+
+  const [page, setPage] = useState(1);
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const { data, isLoading, isError, error } = useWallet(memberId!, {
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+  });
+  const settle = useSettleWallet(memberId!, fundId);
 
   const ownerName = member
     ? member.user_full_name || toPersianDigits(member.user_phone)
     : strings.wallet.unknownMember(formatNumber(Number(memberId)));
+
+  const runSettle = () => {
+    modal.confirm({
+      title: strings.wallet.settleConfirmTitle,
+      content: strings.wallet.settleConfirmBody,
+      okText: strings.wallet.settleConfirmOk,
+      cancelText: strings.wallet.cancel,
+      onOk: () =>
+        new Promise<void>((resolve) => {
+          settle.mutate(undefined, {
+            onSuccess: (paid) => {
+              message.success(
+                paid.length > 0
+                  ? strings.wallet.settlePaid(formatNumber(paid.length))
+                  : strings.wallet.settleNothing,
+              );
+              resolve();
+            },
+            onError: (err) => {
+              message.error(errorMessage(err instanceof ApiError ? err.code : "UNKNOWN"));
+              resolve();
+            },
+          });
+        }),
+    });
+  };
 
   return (
     <Flex vertical gap="middle">
@@ -61,9 +106,15 @@ export default function MemberWalletPage() {
           {/* show phone as a subtitle only when the title is showing the name */}
           {member?.user_full_name && <Text type="secondary">{toPersianDigits(member.user_phone)}</Text>}
         </Flex>
-        <Link to={`/funds/${fundId}/members`}>
-          <Button>{strings.wallet.back}</Button>
-        </Link>
+        <Space>
+          <Button onClick={() => setAdjustOpen(true)}>{strings.wallet.adjust}</Button>
+          <Button onClick={runSettle} loading={settle.isPending}>
+            {strings.wallet.settle}
+          </Button>
+          <Link to={`/funds/${fundId}/members`}>
+            <Button>{strings.wallet.back}</Button>
+          </Link>
+        </Space>
       </Flex>
 
       {isError && (
@@ -85,8 +136,22 @@ export default function MemberWalletPage() {
         columns={columns}
         dataSource={data?.results ?? []}
         loading={isLoading}
-        pagination={false}
+        pagination={{
+          current: page,
+          pageSize: PAGE_SIZE,
+          total: data?.count ?? 0,
+          onChange: setPage,
+          showSizeChanger: false,
+          hideOnSinglePage: true,
+        }}
         locale={{ emptyText: <Empty description={strings.wallet.empty} /> }}
+      />
+
+      <AdjustmentModal
+        memberId={memberId!}
+        fundId={fundId}
+        open={adjustOpen}
+        onClose={() => setAdjustOpen(false)}
       />
     </Flex>
   );

@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { ConfigProvider } from "antd";
+import { App as AntApp, ConfigProvider } from "antd";
 import faIR from "antd/locale/fa_IR";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -23,13 +23,17 @@ const FONT_FAMILY =
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConfigProvider direction="rtl" locale={faIR} theme={{ token: { fontFamily: FONT_FAMILY } }}>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
+      {/* Ant's App provides context-aware message/modal/notification (RTL + theme) via
+          App.useApp(); it must sit inside ConfigProvider and above the routes. */}
+      <AntApp>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </AntApp>
     </ConfigProvider>
   </StrictMode>,
 );

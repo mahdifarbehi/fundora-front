@@ -8,6 +8,8 @@ import FundLayout from "../funds/FundLayout";
 import FundOverviewPage from "../funds/FundOverviewPage";
 import MembersPage from "../members/MembersPage";
 import MemberWalletPage from "../members/MemberWalletPage";
+import LoansPage from "../loans/LoansPage";
+import LoanDetailPage from "../loans/LoanDetailPage";
 import BankPage from "../bank/BankPage";
 
 // Route map (ADR 0006): /login is public; everything else is protected and rendered inside
@@ -27,6 +29,8 @@ export default function App() {
             <Route index element={<FundOverviewPage />} />
             <Route path="members" element={<MembersPage />} />
             <Route path="members/:memberId/wallet" element={<MemberWalletPage />} />
+            <Route path="loans" element={<LoansPage />} />
+            <Route path="loans/:loanId" element={<LoanDetailPage />} />
             <Route path="bank" element={<BankPage />} />
           </Route>
         </Route>

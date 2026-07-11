@@ -82,6 +82,7 @@ export const strings = {
   fundNav: {
     overview: "مشخصات",
     members: "اعضا",
+    loans: "وام‌ها",
     bank: "بانک",
   },
 
@@ -136,6 +137,7 @@ export const strings = {
     empty: "تراکنشی ثبت نشده است.",
     colAmount: "مبلغ",
     colType: "نوع",
+    colDescription: "توضیحات",
     colDate: "تاریخ",
     back: "بازگشت به اعضا",
     direction: { CREDIT: "بستانکار", DEBIT: "بدهکار" } as Record<string, string>,
@@ -146,6 +148,85 @@ export const strings = {
       ADJUSTMENT: "اصلاح دستی",
       PAYMENT_REVERSAL: "برگشت پرداخت",
     } as Record<string, string>,
+
+    // Manual adjustment (§6.6)
+    adjust: "اصلاح دستی",
+    adjustTitle: "اصلاح دستی کیف پول",
+    adjustAmountLabel: "مبلغ",
+    adjustDirectionLabel: "نوع اصلاح",
+    adjustCredit: "افزایش موجودی (بستانکار)",
+    adjustDebit: "کاهش موجودی (بدهکار)",
+    adjustDescriptionLabel: "توضیحات",
+    adjustDescriptionPlaceholder: "علت اصلاح را بنویسید (الزامی).",
+    adjustSubmit: "ثبت اصلاح",
+    adjustSuccessCredit: "موجودی افزایش یافت.",
+    adjustSuccessDebit: "موجودی کاهش یافت.",
+    cancel: "انصراف",
+
+    // Manual settle (§6.7)
+    settle: "تسویه دستی",
+    settleConfirmTitle: "اجرای تسویه دستی؟",
+    settleConfirmBody: "بدهی‌های در انتظار از قدیمی‌ترین تا جایی که موجودی اجازه دهد پرداخت می‌شود.",
+    settleConfirmOk: "اجرای تسویه",
+    settlePaid: (countFa: string) => `${countFa} بدهی تسویه شد.`,
+    settleNothing: "بدهی قابل تسویه‌ای نبود (موجودی کافی نیست یا بدهی در انتظاری وجود ندارد).",
+  },
+
+  loans: {
+    title: "وام‌ها",
+    add: "ثبت وام",
+    addTitle: "ثبت وام جدید",
+    empty: "هنوز وامی ثبت نشده است.",
+    colMember: "عضو",
+    colAmount: "مبلغ وام",
+    colInstallments: "اقساط",
+    // "paid / total", e.g. ۳ / ۱۰
+    installmentsProgress: (paidFa: string, totalFa: string) => `${paidFa} / ${totalFa}`,
+    colIssueDate: "تاریخ پرداخت",
+    colStatus: "وضعیت",
+    status: { ACTIVE: "فعال", COMPLETED: "تسویه‌شده" } as Record<string, string>,
+    cancel: "انصراف",
+
+    // Create-loan form
+    memberLabel: "عضو",
+    memberPlaceholder: "انتخاب عضو",
+    memberRequired: "انتخاب عضو الزامی است.",
+    amountLabel: "مبلغ وام",
+    installmentCountLabel: "تعداد کل اقساط",
+    installmentsToGenerateLabel: "تعداد اقساط قابل ایجاد",
+    installmentsToGenerateHelp:
+      "برای وامی که از قبل شروع شده؛ خالی بگذارید تا برابر تعداد کل اقساط شود.",
+    issueDateLabel: "تاریخ پرداخت وام",
+    optionalDefaultHelp: (valueFa: string) => `خالی بگذارید تا از پیش‌فرض صندوق (${valueFa}) استفاده شود.`,
+    submit: "ثبت وام",
+    createSuccess: "وام ثبت شد.",
+
+    // Loan detail
+    detailTitle: (idFa: string) => `وام #${idFa}`,
+    back: "بازگشت به وام‌ها",
+    infoMember: "عضو",
+    infoAmount: "مبلغ وام",
+    infoInstallmentCount: "تعداد کل اقساط",
+    infoGenerated: "اقساط ایجادشده",
+    infoIssueDate: "تاریخ پرداخت",
+    infoStatus: "وضعیت",
+    infoCreatedAt: "تاریخ ثبت",
+    scheduleTitle: "برنامه اقساط",
+    colNumber: "قسط",
+    colDueDate: "سررسید",
+    colInstAmount: "مبلغ",
+    colInstStatus: "وضعیت",
+    colPaidAt: "تاریخ پرداخت",
+    instStatus: { PENDING: "در انتظار", PAID: "پرداخت‌شده" } as Record<string, string>,
+
+    // Reverse a paid installment (§8.1)
+    reverse: "برگشت پرداخت",
+    reverseTitle: "برگشت پرداخت این قسط؟",
+    reverseBody:
+      "قسط به حالت «در انتظار» برمی‌گردد و مبلغ به کیف پول عضو بازگردانده می‌شود. تسویه دوباره اجرا نمی‌شود.",
+    reverseDescLabel: "توضیحات (اختیاری)",
+    reverseConfirm: "برگشت پرداخت",
+    reverseSuccess: "پرداخت قسط برگشت خورد.",
   },
 
   members: {
@@ -211,9 +292,19 @@ export const strings = {
     MEMBER_ALREADY_EXISTS: "این شماره از قبل عضو این صندوق است.",
     CARD_ALREADY_REGISTERED: "این شماره کارت قبلاً برای شخص دیگری ثبت شده است.",
     BANK_TRANSACTION_ALREADY_CHARGED: "این واریزی قبلاً شارژ شده است.",
+    WALLET_OVERDRAFT: "برداشت بیش از موجودی مجاز نیست؛ کیف پول نمی‌تواند منفی شود.",
+    ADJUSTMENT_DESCRIPTION_REQUIRED: "نوشتن توضیحات الزامی است.",
+    INSTALLMENTS_TO_GENERATE_EXCEEDS_COUNT: "تعداد اقساط قابل ایجاد نمی‌تواند از تعداد کل اقساط بیشتر باشد.",
+    LOAN_AMOUNT_TOO_SMALL: "مبلغ وام باید از تعداد اقساط بیشتر باشد؛ در غیر این صورت قسط صفر ایجاد می‌شود.",
+    DUE_NOT_PAID: "این قسط پرداخت نشده است؛ چیزی برای برگشت وجود ندارد.",
     NETWORK_ERROR: "خطای ارتباط با سرور. اتصال را بررسی کنید.",
     UNKNOWN: "خطای ناشناخته رخ داد.",
   } as Record<string, string>,
+
+  // A WALLET_OVERDRAFT carries the attempted `requested` and current `balance` (both Toman) so we
+  // can spell out why the debit was rejected.
+  overdraftDetail: (requested: string, balance: string) =>
+    `برداشت ${requested} بیش از موجودی فعلی (${balance}) است.`,
 } as const;
 
 /** Look up a Persian message for an API error code, falling back to a generic message. */

@@ -34,3 +34,29 @@ export async function getWallet(
   const { data } = await api.get<WalletResponse>(`/members/${memberId}/wallet/`, { params });
   return data;
 }
+
+// A manual wallet correction (FRONTEND_API §6.6). A CREDIT auto-settles pending dues; a DEBIT
+// does not and is capped at the current balance (the wallet can never go negative).
+export interface AdjustmentInput {
+  amount: number;
+  direction: Direction;
+  description: string;
+}
+
+/** POST /api/members/{id}/adjustments/ — credit/debit the wallet directly. */
+export async function postAdjustment(
+  memberId: string,
+  input: AdjustmentInput,
+): Promise<WalletTransaction> {
+  const { data } = await api.post<WalletTransaction>(`/members/${memberId}/adjustments/`, input);
+  return data;
+}
+
+/**
+ * POST /api/members/{id}/settle/ — force a settlement run (empty body). Pays pending dues
+ * oldest-first while the balance allows, returning the payment rows it created (may be empty).
+ */
+export async function settleWallet(memberId: string): Promise<WalletTransaction[]> {
+  const { data } = await api.post<WalletTransaction[]>(`/members/${memberId}/settle/`, {});
+  return data;
+}

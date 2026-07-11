@@ -486,10 +486,14 @@ adjustment automatically triggers settlement of pending dues; a **debit** does n
 `type: "ADJUSTMENT"`).
 
 **Errors**
-- `400 {"code": "ADJUSTMENT_DESCRIPTION_REQUIRED"}` — description empty/whitespace.
+- `400 VALIDATION_ERROR` — a blank/whitespace description returns
+  `{"code": "VALIDATION_ERROR", "fields": {"description": ["blank"]}}` (verified against the
+  live backend). Other field codes: `amount: ["min_value"]`, `direction: ["invalid_choice"]`.
+  *(The serializer's field-level `blank` check fires first, so the dedicated
+  `ADJUSTMENT_DESCRIPTION_REQUIRED` code below is not currently emitted for the empty-description
+  case — kept documented in case a code path still raises it.)*
 - `400 {"code": "WALLET_OVERDRAFT", "requested": 50000, "balance": 1200}` — a `DEBIT`
   larger than the current balance. The wallet can never go negative.
-- `400 VALIDATION_ERROR` — e.g. `amount: ["min_value"]`, `direction: ["invalid_choice"]`.
 - `404 NOT_FOUND`.
 
 ### 6.7 `POST /api/members/{id}/settle/` — run settlement manually
@@ -813,7 +817,7 @@ auth/permission errors are covered in §2.
 | `BANK_TRANSACTION_ALREADY_CHARGED` | `bank_transaction_id` | Assign member (§9.5) |
 | `INSTALLMENTS_TO_GENERATE_EXCEEDS_COUNT` | `installments_to_generate`, `installment_count` | Create loan (§7.2) |
 | `LOAN_AMOUNT_TOO_SMALL` | `loan_amount`, `installment_count` | Create loan (§7.2) |
-| `ADJUSTMENT_DESCRIPTION_REQUIRED` | — | Adjustment (§6.6) |
+| `ADJUSTMENT_DESCRIPTION_REQUIRED` | — | Adjustment (§6.6) — *not currently emitted; blank description returns `VALIDATION_ERROR {description:["blank"]}` instead* |
 | `WALLET_OVERDRAFT` | `requested`, `balance` | Debit adjustment (§6.6) |
 
 ---

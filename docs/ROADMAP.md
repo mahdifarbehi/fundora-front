@@ -426,14 +426,21 @@ reuse `JalaliDateTimeInput` (date-only, `showTime={false}`) — no new date infr
 **Implements:** FRONTEND_API §6.5–6.7.
 
 **Build:**
-- [ ] Paginated ledger view with `balance`, direction/type per row.
-- [ ] Manual adjustment (`POST .../adjustments/`): credit/debit + required description; handle
-      `WALLET_OVERDRAFT` and `ADJUSTMENT_DESCRIPTION_REQUIRED`; refetch after a credit (it
-      auto-settles).
-- [ ] Manual settle button (`POST .../settle/`) → refetch wallet + affected loans.
+- [x] Paginated ledger view with `balance`, direction/type per row (server-side limit/offset,
+      `keepPreviousData`; added a description column). (`MemberWalletPage`, `wallets/hooks.ts`)
+- [x] Manual adjustment (`POST .../adjustments/`, `AdjustmentModal`): credit/debit + required
+      description; `WALLET_OVERDRAFT` shows attempted-vs-current balance; a slipped-through
+      `VALIDATION_ERROR` lands inline. Refetches wallet (+ loans) after a credit (it auto-settles).
+      *(Doc note: the live backend returns `VALIDATION_ERROR{description:["blank"]}` for a blank
+      description, not the documented `ADJUSTMENT_DESCRIPTION_REQUIRED` — FRONTEND_API §6.6 updated.)*
+- [x] Manual settle button (`POST .../settle/`) → confirm dialog → refetch wallet + fund loans.
+- [x] Added Ant's `<App>` provider (`main.tsx`) so `App.useApp()` gives RTL/theme-aware
+      message + modal.
 
 **Done when:**
-- [ ] Adjustments and manual settlement work; overdraft is blocked with a clear message.
+- [x] Adjustments and manual settlement work; overdraft is blocked with a clear message.
+      *(Verified against the real backend: credit `201`; overdraft `400 WALLET_OVERDRAFT
+      {requested,balance}`; settle `200`. User confirmed the full flow in the browser.)*
 
 ---
 
@@ -444,15 +451,23 @@ reuse `JalaliDateTimeInput` (date-only, `showTime={false}`) — no new date infr
 **Implements:** FRONTEND_API §7, §8.
 
 **Build:**
-- [ ] Loans list per fund (`GET .../loans/`, each with inlined installments).
-- [ ] Create loan (`POST .../loans/`) with fund-default fallbacks; handle
-      `INSTALLMENTS_TO_GENERATE_EXCEEDS_COUNT`, `LOAN_AMOUNT_TOO_SMALL`.
-- [ ] Loan detail (`GET /api/loans/{id}/`) with the installment schedule.
-- [ ] Reverse a paid due (`POST /api/dues/{id}/reverse-payment/`); handle `DUE_NOT_PAID`;
-      refetch wallet + loan (a reversal can flip `COMPLETED` → `ACTIVE`).
+- [x] Loans list per fund (`GET .../loans/`, each with inlined installments) — `LoansPage`, new
+      fund nav tab; member name, amount, paid/total installments, status tag; row → detail.
+- [x] Create loan (`POST .../loans/`, `CreateLoanModal`) with fund-default fallbacks (empty
+      optional fields); handles `INSTALLMENTS_TO_GENERATE_EXCEEDS_COUNT`, `LOAN_AMOUNT_TOO_SMALL`,
+      inline field errors. Create body hand-written (generated schema reuses read-only `Loan`).
+- [x] Loan detail (`GET /api/loans/{id}/`, `LoanDetailPage`) with the installment schedule.
+- [x] Reverse a paid due (`POST /api/dues/{id}/reverse-payment/`, `ReverseDueModal`); handles
+      `DUE_NOT_PAID`; refetches loan + list + wallet (a reversal can flip `COMPLETED` → `ACTIVE`).
+- [x] `issue_date` uses `isoToDateOnly` (`lib/jalali.ts`) so the Jalali→UTC round-trip keeps the
+      picked calendar day. Settle/credit-adjustment now also refetch fund loans (Phase 10 deferral).
 
 **Done when:**
-- [ ] Loans can be created and viewed with their schedules; payment reversal works.
+- [x] Loans can be created and viewed with their schedules; payment reversal works.
+      *(Verified against the real backend: create `201` with generated installments; all three
+      create errors; settle paid installments oldest-first → loan `COMPLETED`; reverse →
+      `PAYMENT_REVERSAL` credit + loan `ACTIVE`; re-reverse → `DUE_NOT_PAID`. User confirmed in the
+      browser.)*
 
 ---
 

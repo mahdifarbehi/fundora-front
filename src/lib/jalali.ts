@@ -58,6 +58,19 @@ export function jalaliPartsToIso(p: JalaliParts, withTime: boolean): string | un
   return d.toISOString();
 }
 
+/**
+ * ISO/UTC string → local-wall-clock Gregorian `YYYY-MM-DD`, for date-only API fields (e.g. a
+ * loan's `issue_date`). Reads local components — the inverse of the local→UTC shift `toISOString`
+ * applies — so the calendar day the user picked in a JalaliDateTimeInput survives the round-trip.
+ */
+export function isoToDateOnly(iso?: string): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return undefined;
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+}
+
 const jalaliDayFmt = new Intl.DateTimeFormat("en-US-u-ca-persian", { day: "numeric" });
 const jalaliDateFmt = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   year: "numeric",
