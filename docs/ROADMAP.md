@@ -477,13 +477,23 @@ reuse `JalaliDateTimeInput` (date-only, `showTime={false}`) — no new date infr
 
 **Implements:** FRONTEND_API §5.4, §5.6.
 
+> **⚠️ Reports sub-section PARKED (2026-07-11).** The user parked the monthly-report work —
+> "so tricky", "we will have to change a lot" — and asked to leave `src/reports/*` untouched and
+> work on everything else until the end of the project. The report code below is committed as a
+> first pass but is **slated for redesign**; don't build on it. Fund-*settings* editing is not parked.
+
 **Build:**
-- [ ] Edit fund settings (`PATCH /api/funds/{id}/`); note settings apply to future ops only.
-- [ ] Monthly report screen (`GET .../reports/monthly/?period_start=...`) showing expected vs
-      received contributions, active-loan totals, and member balances.
+- [x] Edit fund settings (`PATCH /api/funds/{id}/`, `EditFundModal`); "settings apply to future ops
+      only" note shown. Shared `fundForm.ts` + `FundFormFields.tsx` extracted so create/edit stay in
+      sync (`CreateFundModal` refactored onto them). *(Backend contract verified: partial PATCH →
+      `200`; `contribution_day=40` → `VALIDATION_ERROR{max_value}`. Browser test still pending.)*
+- [x] *(first pass, PARKED — will change)* Monthly report screen (`ReportsPage`,
+      `GET .../reports/monthly/?period_start=...`) — expected/received contributions, active-loan
+      total/count, member balances. Report GET contract verified via curl; UI unreviewed by design.
 
 **Done when:**
-- [ ] Settings can be edited; the monthly report renders for a chosen period.
+- [ ] Settings can be edited (code done; browser test pending).
+- [ ] ~~the monthly report renders for a chosen period~~ — **parked; redesign pending.**
 
 ---
 

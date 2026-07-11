@@ -33,10 +33,12 @@ It is the source of truth for progress; this section is the short summary.
 - **Pending user browser click-tests:** the `- [ ] (your click-test)` boxes in `ROADMAP.md`
   for Phases 2–6. Code is verified (typecheck + module transforms + backend contract via
   curl); only the in-browser confirmation is outstanding.
-- **Next to build (fan-out, your pick):** Phase 7 (error/loading/session-expiry polish) and
-  Phase 12 (fund settings + monthly report). Recommended default if unsure: **Phase 12**
-  (now that loans/dues data exists the monthly report is meaningful), or **Phase 7** for the
-  cross-cutting UX polish every later screen inherits.
+- **Phase 12 status:** fund-**settings** editing is built (`EditFundModal`, shared
+  `fundForm`/`FundFormFields`; browser test pending). The **monthly report** is a committed
+  first pass but is **PARKED** — the user asked to leave `src/reports/*` untouched and work on
+  everything else until the project's end (it will be redesigned). Don't build on it.
+- **Next to build:** **Phase 7** (cross-cutting error/loading/session-expiry polish) — the main
+  remaining work now that reports is parked. Anything except the reports section is fair game.
 
 ### Resuming a session (if the user just says "continue")
 1. Read `docs/ROADMAP.md` — the checkboxes show exactly what's done vs. next.

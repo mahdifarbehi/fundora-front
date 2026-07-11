@@ -70,6 +70,12 @@ export const strings = {
     createSuccess: "صندوق با موفقیت ایجاد شد.",
     switcherPlaceholder: "انتخاب صندوق",
     open: "باز کردن",
+    // Edit settings (§5.4)
+    editTitle: "ویرایش تنظیمات صندوق",
+    editSubmit: "ذخیره",
+    editSuccess: "تنظیمات صندوق به‌روزرسانی شد.",
+    settingsFutureNote:
+      "تغییر تنظیمات فقط روی عملیات آینده اثر دارد؛ وام‌ها و بدهی‌های موجود تغییر نمی‌کنند.",
   },
 
   overview: {
@@ -77,6 +83,24 @@ export const strings = {
     createdAt: "تاریخ ایجاد",
     notFound: "صندوق یافت نشد یا به شما تعلق ندارد.",
     back: "بازگشت به فهرست صندوق‌ها",
+    editSettings: "ویرایش تنظیمات",
+  },
+
+  reports: {
+    title: "گزارش ماهانه",
+    periodLabel: "شروع دوره",
+    periodHelp: "تاریخ شروع دوره‌ی صورت‌حساب را انتخاب کنید (روز واریز صندوق).",
+    periodRequired: "شروع دوره را انتخاب کنید.",
+    generate: "نمایش گزارش",
+    emptyPrompt: "برای مشاهده‌ی گزارش، شروع دوره را انتخاب و «نمایش گزارش» را بزنید.",
+    expectedContributions: "سهم‌های مورد انتظار",
+    receivedContributions: "سهم‌های دریافت‌شده",
+    activeLoanTotal: "مجموع وام‌های فعال",
+    activeLoanCount: "تعداد وام‌های فعال",
+    memberBalancesTitle: "موجودی اعضا",
+    colMember: "عضو",
+    colBalance: "موجودی",
+    emptyBalances: "عضوی برای نمایش وجود ندارد.",
   },
 
   fundNav: {
@@ -84,6 +108,7 @@ export const strings = {
     members: "اعضا",
     loans: "وام‌ها",
     bank: "بانک",
+    reports: "گزارش",
   },
 
   bank: {

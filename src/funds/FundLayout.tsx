@@ -16,6 +16,7 @@ export default function FundLayout() {
     { key: "members", label: <Link to={`/funds/${fundId}/members`}>{strings.fundNav.members}</Link> },
     { key: "loans", label: <Link to={`/funds/${fundId}/loans`}>{strings.fundNav.loans}</Link> },
     { key: "bank", label: <Link to={`/funds/${fundId}/bank`}>{strings.fundNav.bank}</Link> },
+    { key: "reports", label: <Link to={`/funds/${fundId}/reports`}>{strings.fundNav.reports}</Link> },
   ];
 
   return (

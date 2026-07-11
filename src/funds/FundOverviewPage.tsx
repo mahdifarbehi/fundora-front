@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Alert, Button, Descriptions, Flex, Result, Spin, Typography } from "antd";
+import { EditOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { useFundId } from "./fundScope";
 import { useFund } from "./hooks";
+import EditFundModal from "./EditFundModal";
 import { formatNumber, formatToman } from "../lib/money";
 import { formatJalaliDate, jalaliDayPossibilities } from "../lib/jalali";
 import { ApiError } from "../lib/errors";
@@ -12,6 +15,7 @@ const { Title } = Typography;
 export default function FundOverviewPage() {
   const fundId = useFundId();
   const { data: fund, isLoading, isError, error } = useFund(fundId);
+  const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -44,9 +48,14 @@ export default function FundOverviewPage() {
 
   return (
     <Flex vertical gap="middle">
-      <Title level={3} style={{ margin: 0 }}>
-        {fund.name}
-      </Title>
+      <Flex align="center" justify="space-between">
+        <Title level={3} style={{ margin: 0 }}>
+          {fund.name}
+        </Title>
+        <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+          {strings.overview.editSettings}
+        </Button>
+      </Flex>
 
       <Descriptions bordered column={1} title={strings.overview.title}>
         <Descriptions.Item label={strings.funds.colMonthlyShare}>
@@ -70,6 +79,8 @@ export default function FundOverviewPage() {
       </Descriptions>
 
       <Alert type="info" showIcon message={strings.funds.contributionDayGregorianNote} />
+
+      <EditFundModal fundId={fundId} fund={fund} open={editOpen} onClose={() => setEditOpen(false)} />
     </Flex>
   );
 }

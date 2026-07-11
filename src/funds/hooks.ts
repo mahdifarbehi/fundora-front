@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listFunds, getFund, createFund, type CreateFundInput } from "./api";
+import { listFunds, getFund, createFund, updateFund, type CreateFundInput } from "./api";
 
 // Query keys live in one place so invalidation and reads can't drift apart.
 export const fundKeys = {
@@ -29,6 +29,17 @@ export function useCreateFund() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateFundInput) => createFund(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: fundKeys.all });
+    },
+  });
+}
+
+/** Update a fund's settings (§5.4), then invalidate its detail + the list (name/amounts show there). */
+export function useUpdateFund(fundId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Partial<CreateFundInput>) => updateFund(fundId, input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: fundKeys.all });
     },

@@ -31,3 +31,15 @@ export async function createFund(input: CreateFundInput): Promise<Fund> {
   const { data } = await api.post<Fund>("/funds/", input);
   return data;
 }
+
+/**
+ * PATCH /api/funds/{id}/ — update writable settings (FRONTEND_API §5.4). Changes apply to future
+ * operations only; existing loans/dues keep the values they snapshotted at creation.
+ */
+export async function updateFund(
+  id: string | number,
+  input: Partial<CreateFundInput>,
+): Promise<Fund> {
+  const { data } = await api.patch<Fund>(`/funds/${id}/`, input);
+  return data;
+}
